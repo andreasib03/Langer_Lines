@@ -13,27 +13,35 @@ class CacheCleanupWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters
 ) : CoroutineWorker(context, params) {
-        override suspend fun doWork(): Result {
-            return try {
-                val cacheDir = applicationContext.cacheDir
-                val currentTime = System.currentTimeMillis()
-                val twentyFourHoursInMillis = 24 * 3600 * 1000
-                // Elimina i file più vecchi di 24 ore o tutti i file temporanei
-                cacheDir.listFiles()?.forEach { file ->
+    override suspend fun doWork(): Result {
+        return try {
+            val cacheDir = applicationContext.cacheDir
+            val currentTime = System.currentTimeMillis()
+            val twentyFourHoursInMillis = 24 * 3600 * 1000
 
-                    val isOldEnough = (currentTime - file.lastModified() > twentyFourHoursInMillis)
-                    val isTempFile = file.name.startsWith("langer_temp") || file.extension == "jpg"
-                    if (isTempFile && isOldEnough) {
-                        file.delete()
-                    }
+            // Recuperiamo un eventuale flag per capire se è una pulizia forzata (manuale)
+            val isManual = inputData.getBoolean("is_manual", false)
+
+            var deletedCount = 0
+
+            cacheDir.listFiles()?.forEach { file ->
+                val isOldEnough = (currentTime - file.lastModified() > twentyFourHoursInMillis)
+                val isTempFile = file.name.startsWith("langer_temp") ||
+                        file.extension == "jpg" ||
+                        file.extension == "webp"
+
+                // Se è manuale, cancelliamo tutto il temporaneo subito.
+                // Se è automatico, solo quello vecchio di 24h.
+                if (isTempFile && (isManual || isOldEnough)) {
+                    if (file.delete()) deletedCount++
                 }
-
-                // aggiungere controllo System.currentTimeMillis() - file.lastModified() > 24 * 3600 * 1000
-                Log.d("CacheWorker", "Pulizia cache completata con successo")
-                Result.success()
-            } catch (e: Exception) {
-                Log.e("CacheWorker", "Errore durante la pulizia", e)
-                Result.failure()
             }
+
+            Log.d("CacheWorker", "Pulizia completata: rimossi $deletedCount file")
+            Result.success()
+        } catch (e: Exception) {
+            Log.e("CacheWorker", "Errore durante la pulizia", e)
+            Result.failure()
         }
+    }
 }

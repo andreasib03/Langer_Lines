@@ -26,7 +26,7 @@ class ImageRecoveryWorker @AssistedInject constructor(
                     Environment.DIRECTORY_PICTURES
                 )
 
-            val langerDir = File(picturesDir, "LangerLines")
+            val langerDir = File(picturesDir, "LangerAnalysis")
 
             if (!langerDir.exists()) {
                 Log.d("ImageRecoveryWorker", "Cartella non trovata")
@@ -34,26 +34,25 @@ class ImageRecoveryWorker @AssistedInject constructor(
             }
 
             val files = langerDir.listFiles { _, name ->
-                name.startsWith("Langer_") && name.endsWith(".jpg")
+                name.startsWith("Langer_") && name.endsWith(".webp")
             } ?: return Result.success()
 
-            val localAnalyses = repository.getAllAnalysesInternal()
+            Log.d("ImageRecoveryWorker", "Trovati ${files.size} file potenziali")
 
+            val localAnalyses = repository.getAllAnalysesInternal()
             val analysesMap = localAnalyses.associateBy { it.date }
 
             files.forEach { file ->
 
                 val timestamp = file.name
                     .removePrefix("Langer_")
-                    .removeSuffix(".jpg")
+                    .removeSuffix(".webp")
                     .toLongOrNull()
 
                 if (timestamp != null) {
-
                     val match = analysesMap[timestamp]
 
                     if (match != null) {
-
                         repository.updateImagePath(
                             timestamp,
                             file.absolutePath
@@ -61,7 +60,7 @@ class ImageRecoveryWorker @AssistedInject constructor(
 
                         Log.d(
                             "ImageRecoveryWorker",
-                            "Immagine recuperata: ${file.absolutePath}"
+                            "Immagine recuperata per il record: $timestamp"
                         )
                     }
                 }

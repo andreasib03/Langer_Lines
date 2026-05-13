@@ -68,11 +68,17 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.linee_langer.R
+import com.example.linee_langer.domain.models.LangerLine
 import com.example.linee_langer.logic.ImageUtils.toBitmapFixed
 import com.example.linee_langer.logic.saveBitmapAndFinish
 import com.example.linee_langer.ui.components.LangerOverlay
 import com.example.linee_langer.ui.interfacesUser.AppDimension
 import com.example.linee_langer.ui.components.PermissionDeniedUI
+import com.example.linee_langer.ui.interfacesUser.Border
+import com.example.linee_langer.ui.interfacesUser.IconSize
+import com.example.linee_langer.ui.interfacesUser.Padding
+import com.example.linee_langer.ui.interfacesUser.Shape
+import com.example.linee_langer.ui.interfacesUser.Spacing
 import com.example.linee_langer.ui.utils.BodyPart
 import com.example.linee_langer.ui.utils.QualityInfo
 import com.example.linee_langer.ui.utils.bodyPartsList
@@ -139,11 +145,12 @@ fun CameraScreen(
                     ImagePreviewScreen(
                         bitmap = capturedBitmap!!,
                         analysisViewModel = analysisViewModel,
-                        onConfirm = {
+                        onConfirm = { linesToSave ->
                             analysisViewModel.setBodyPart(selectedBodyPart?.id ?: "unknown")
                             saveBitmapAndFinish(
                                 context = context,
                                 bitmap = capturedBitmap!!,
+                                lines = linesToSave,
                                 analysisViewModel = analysisViewModel,
                                 notificationViewModel = notificationViewModel,
                                 onClose = onClose
@@ -176,27 +183,27 @@ fun CameraScreen(
                 Surface(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(top = 80.dp)
+                        .padding(top = Padding.superLargeTop)
                         .clickable { selectedBodyPart = null },
                     color = Color.Black.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
+                    shape = RoundedCornerShape(Shape.small),
+                    border = BorderStroke(Border.superSmall, Color.White.copy(alpha = 0.3f))
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(horizontal = Padding.horizontalPadding, vertical = Padding.verticalPadding)
                     ) {
                         Text(
                             text = "Area: ${stringResource(selectedBodyPart!!.name)}",
                             color = Color.White,
                             style = MaterialTheme.typography.labelLarge
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(Spacing.small))
                         Icon(
                             painterResource(R.drawable.ic_sync),
                             null,
                             tint = Color.White,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(IconSize.superSmall)
                         )
                     }
                 }
@@ -471,10 +478,12 @@ private fun CameraContent(
 fun ImagePreviewScreen(
     bitmap: Bitmap,
     analysisViewModel: CameraAnalysisViewModel,
-    onConfirm: () -> Unit,
+    onConfirm: (List<LangerLine>) -> Unit,
     onRetake: () -> Unit
 ) {
-    val lineCount = analysisViewModel.detectedLines.size
+    val lineCount = remember { analysisViewModel.detectedLines.size }
+
+    val staticLines = remember { analysisViewModel.detectedLines.toList() }
 
     // Logica di valutazione
     val qualityStatus = when {
@@ -516,7 +525,7 @@ fun ImagePreviewScreen(
             )
 
             LangerOverlay(
-                lines = analysisViewModel.detectedLines,
+                lines = staticLines,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -585,10 +594,14 @@ fun ImagePreviewScreen(
             )
 
             ActionButton(
-                label = stringResource(R.string.confirm),
-                icon = R.drawable.ic_check,
-                color = qualityStatus.color,
-                onClick = onConfirm
+                label = if (analysisViewModel.isProcessing) "Salvataggio..." else stringResource(R.string.confirm),
+                icon = if (analysisViewModel.isProcessing) R.drawable.ic_sync else R.drawable.ic_check,
+                color = if (analysisViewModel.isProcessing) Color.Gray else qualityStatus.color,
+                onClick = {
+                    if (!analysisViewModel.isProcessing) {
+                        onConfirm(staticLines)
+                    }
+                }
             )
         }
     }

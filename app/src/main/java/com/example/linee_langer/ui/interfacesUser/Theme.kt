@@ -21,8 +21,9 @@ private val LightColors = lightColorScheme(
 // You can define a Dark Mode palette here too!
 private val DarkColors = darkColorScheme(
     primary = Color(0xFFD0BCFF),
-    background = Color(0xFF1C1B1F),
-    surface = Color(0xFF1C1B1F)
+    background = DarkBackground,
+    surface = DarkSurface,
+    surfaceVariant = Color(0xFF2C2C2C)
 )
 
 @Composable

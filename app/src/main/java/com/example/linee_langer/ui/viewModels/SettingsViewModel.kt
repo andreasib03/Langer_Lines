@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
+import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -19,9 +20,11 @@ import com.example.linee_langer.service.CacheCleanupWorker
 import com.example.linee_langer.service.ImageRecoveryWorker
 import com.example.linee_langer.service.SyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -93,8 +96,14 @@ class SettingsViewModel @Inject constructor(
     suspend fun clearCache(): Boolean {
         return try {
             val context = getApplication<Application>()
+
+            // Passiamo il flag "is_manual" = true
+            val data = Data.Builder()
+                .putBoolean("is_manual", true)
+                .build()
+
             val clearRequest = OneTimeWorkRequestBuilder<CacheCleanupWorker>()
-                .setConstraints(Constraints.Builder().build()) // Esegui subito senza vincoli pesanti
+                .setInputData(data)
                 .build()
 
             WorkManager.getInstance(context)
@@ -102,7 +111,6 @@ class SettingsViewModel @Inject constructor(
 
             true
         } catch (e: Exception) {
-            Log.e("SettingsVM", "Errore nell'avvio della pulizia cache", e)
             false
         }
     }

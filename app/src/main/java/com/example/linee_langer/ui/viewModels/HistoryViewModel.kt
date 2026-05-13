@@ -17,18 +17,22 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-
+import kotlinx.coroutines.flow.onEach
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val repositorAnalysis: AnalysisRepository,
     private val repositoryNotification: NotificationRepository
 ) : ViewModel() {
 
-    val history = repositorAnalysis.allAnalyses.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    val history = repositorAnalysis.allAnalyses
+        .onEach {
+            list -> Log.d("HistoryVM", "Ricevute ${list.size} analisi dal DB")
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     val totalAnalyses = repositorAnalysis.analysisCount.stateIn(
         scope = viewModelScope,

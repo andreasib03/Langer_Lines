@@ -1,5 +1,6 @@
 package com.example.linee_langer.data
 
+import android.util.Log
 import com.example.linee_langer.dao.AnalysisDao
 import com.example.linee_langer.dao.AnalysisWithLines
 import com.example.linee_langer.db.LangerLineEntity
@@ -11,13 +12,14 @@ class AnalysisRepository @Inject constructor(
     private val dao : AnalysisDao
 ) {
     val allAnalyses: Flow<List<AnalysisWithLines>> = dao.getAllAnalysesWithLines()
-
     val analysisCount: Flow<Int> = dao.getAnalysisCount()
 
     suspend fun saveFullAnalysis(analysis: SkinAnalysisEntry, lines: List<LangerLineEntity>){
-        val id = dao.insertAnalysis(analysis)
-        val linesWithId = lines.map { it.copy( analysisId = id ) }
+        val generatedId = dao.insertAnalysis(analysis)
+        val linesWithId = lines.map { it.copy( analysisId = generatedId ) }
         dao.insertLines(linesWithId)
+
+        Log.d("REPO_DEBUG", "Salvate ${linesWithId.size} linee collegate all'ID $generatedId")
     }
 
     fun getAnalysisById(id:Long): Flow<AnalysisWithLines?>{
@@ -29,7 +31,10 @@ class AnalysisRepository @Inject constructor(
     suspend fun getUnsyncedAnalyses() = dao.getUnsyncedAnalyses()
 
     suspend fun updateSyncStatus(date: Long, status: Boolean){
-        dao.updateSyncStatus(date,status)
+        val analysis = dao.getAnalysisByTimestamp(date)
+        analysis?.let {
+            dao.updateSyncStatus(it.id, status)
+        }
     }
 
     suspend fun getLastAnalysisDate() = dao.getLastAnalysisDate()
@@ -46,14 +51,13 @@ class AnalysisRepository @Inject constructor(
      * Aggiorna il percorso del file immagine se viene ritrovato nella cartella Pictures.
      */
     suspend fun updateImagePath(date: Long, newPath: String) {
-        dao.updateImagePath(date, newPath)
+        dao.updateImagePathByTimestamp(date, newPath)
     }
 
     // --- METODI DI CANCELLAZIONE ---
     suspend fun deleteFullAnalysis(analysis: SkinAnalysisEntry) {
         dao.deleteAnalysisEntry(analysis)
     }
-
 
     suspend fun deleteAllAnalysis(){
         dao.deleteAll()

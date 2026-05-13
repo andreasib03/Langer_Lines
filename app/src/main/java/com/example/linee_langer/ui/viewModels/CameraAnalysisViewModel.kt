@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import androidx.core.graphics.scale
+import com.example.linee_langer.logic.saveBitmapToGallery
 
 @HiltViewModel
 class CameraAnalysisViewModel @Inject constructor(
@@ -213,29 +214,19 @@ class CameraAnalysisViewModel @Inject constructor(
         cleanLines() // Usa la funzione centralizzata
     }
 
-    fun saveAnalysisResult(date: Long, bitmap: Bitmap) {
+    fun saveAnalysisResult(date: Long, bitmap: Bitmap, linesToSave: List<LangerLine>) {
         viewModelScope.launch(Dispatchers.IO) {
             isProcessing = true
             try {
                 val context = getApplication<Application>()
-                val fileName = "Langer_${date}.jpg"
 
-                val publicUri = saveImageToPublicGallery(context,bitmap,fileName)
+                val publicUri = saveBitmapToGallery(context,bitmap,date)
 
-                val finalImagePath = publicUri?.toString() ?: "internal_placeholder"
-
-                executeLocalSave(date, finalImagePath)
-
-                scheduleFullSync()
-
-                withContext(Dispatchers.Main){
-                    repositoryNotification.addNotification(
-                        title = "Analisi Salvata",
-                        description = "Analisi memorizzata sul dispositivo"
-                    )
+                if(publicUri != null){
+                    executeLocalSave(date, publicUri.toString(), linesToSave)
+                    scheduleFullSync()
                 }
-            } catch (e: Exception){
-                Log.e("CameraAnalysisVM", "Errore durante il salvataggio locale: ${e.message}")
+
             } finally {
                 isProcessing = false
             }
@@ -262,7 +253,7 @@ class CameraAnalysisViewModel @Inject constructor(
             .enqueue()
     }
 
-    suspend fun executeLocalSave(date: Long, path:String){
+    suspend fun executeLocalSave(date: Long, path:String, lines: List<LangerLine>){
 
         withContext(Dispatchers.IO){
             try {
@@ -273,9 +264,10 @@ class CameraAnalysisViewModel @Inject constructor(
                     resultSummary = "Analisi effettuata con successo"
                 )
 
-                val linesToSave = detectedLines.map { it.toEntity() }
+                val entities = lines.map { it.toEntity()  }
 
-                repositorAnalysis.saveFullAnalysis(analysis, linesToSave)
+
+                repositorAnalysis.saveFullAnalysis(analysis,entities)
 
                 Log.d("CameraAnalysisVM", "Salvataggio database completato per l'analisi del $date")
             } catch (e: Exception) {

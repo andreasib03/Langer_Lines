@@ -12,10 +12,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.linee_langer.ui.viewModels.AuthViewModel
 import com.example.linee_langer.R
+import com.example.linee_langer.ui.interfacesUser.Button
+import com.example.linee_langer.ui.interfacesUser.Spacing
 import com.example.linee_langer.ui.viewModels.AuthUiState
 
 @Composable
@@ -48,7 +49,7 @@ fun AuthScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(Spacing.large),
         contentAlignment = Alignment.Center
     ) {
 
@@ -57,7 +58,7 @@ fun AuthScreen(
                 .fillMaxWidth()
                 .alpha(if (isLoading) 0.3f else 1f),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(Spacing.medium)
         ) {
             Text(
                 text = if (isLoginMode) stringResource(R.string.login_langer) else stringResource(R.string.create_account),
@@ -72,7 +73,7 @@ fun AuthScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Spacing.small))
 
             OutlinedTextField(
                 value = authViewModel.email,
@@ -107,7 +108,7 @@ fun AuthScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Spacing.small))
 
 
 
@@ -116,7 +117,7 @@ fun AuthScreen(
                 onClick = {
                     authViewModel.handleAuth(isLoginMode)
                 },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
+                modifier = Modifier.fillMaxWidth().height(Button.extraLargeHeight),
                 enabled = !isLoading
             ) {
                 Text(if (isLoginMode) stringResource(R.string.login_start) else stringResource(R.string.register_save))
@@ -130,7 +131,7 @@ fun AuthScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(Button.extraLargeHeight),
                 enabled = !isLoading
             ) {
                 Text(stringResource(R.string.login_google))

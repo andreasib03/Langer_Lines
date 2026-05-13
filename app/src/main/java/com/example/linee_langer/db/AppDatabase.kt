@@ -13,7 +13,7 @@ import com.example.linee_langer.dao.NotificationDAO
     entities = [
         NotificationItem::class,
         SkinAnalysisEntry:: class,
-        LangerLineEntity:: class], version = 5, exportSchema = true)
+        LangerLineEntity:: class], version = 6, exportSchema = true)
     abstract class AppDatabase : RoomDatabase() {
         abstract fun notificationDAO(): NotificationDAO
         abstract fun analysisDAO(): AnalysisDao

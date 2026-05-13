@@ -1,7 +1,6 @@
 package com.example.linee_langer.ui.components
 
-import android.net.Uri
-import androidx.browser.customtabs.CustomTabsIntent
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -249,11 +248,12 @@ fun PrivacyPolicyCard(){
 
             // Botton for details
             val context = LocalContext.current
-            val privacyUrl = "https:///privacy-policy.html"
+            val privacyUrl = "https://andreasib03.github.io/Langer_Lines/"
             TextButton(
-                onClick = { val builder = CustomTabsIntent.Builder()
-                val customTabsIntent = builder.build()
-                customTabsIntent.launchUrl(context, privacyUrl.toUri())}
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, privacyUrl.toUri())
+                    context.startActivity(intent)
+                }
             ) {
             Text(
                     stringResource(R.string.complete_privacy),

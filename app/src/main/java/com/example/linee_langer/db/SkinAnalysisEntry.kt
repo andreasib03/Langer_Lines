@@ -2,11 +2,14 @@ package com.example.linee_langer.db
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@Entity(tableName = "skin_analyses")
+@Entity(
+    tableName = "skin_analyses",
+    indices = [Index(value = ["date"])])
 data class SkinAnalysisEntry(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
@@ -29,7 +32,7 @@ data class SkinAnalysisEntry(
             onDelete = ForeignKey.CASCADE // eliminate analysis with lines
         )
     ],
-    indices = [androidx.room.Index(value = ["analysisId"])]
+    indices = [Index(value = ["analysisId"])]
 )
 
 

@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.linee_langer.R
+import com.example.linee_langer.domain.models.LangerLine
 import com.example.linee_langer.ui.viewModels.CameraAnalysisViewModel
 import com.example.linee_langer.ui.viewModels.NotificationViewModel
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ import java.io.OutputStream
 fun saveBitmapAndFinish(
     context: Context,
     bitmap: Bitmap,
+    lines: List<LangerLine>,
     analysisViewModel: CameraAnalysisViewModel,
     notificationViewModel: NotificationViewModel,
     onClose: () -> Unit
@@ -32,15 +34,12 @@ fun saveBitmapAndFinish(
             val savedUri = saveBitmapToGallery(context, bitmap, timestamp)
 
             if(savedUri != null) {
-                analysisViewModel.saveAnalysisResult(
-                    date = timestamp,
-                    bitmap = bitmap
-                )
+                analysisViewModel.executeLocalSave(timestamp, savedUri.toString(), lines)
                 analysisViewModel.scheduleFullSync()
-                notificationViewModel.sendAnalysisSuccessNotification()
             }
 
             withContext(Dispatchers.Main){
+                notificationViewModel.sendAnalysisSuccessNotification()
                 onClose()
             }
         } catch(e: Exception){

@@ -1,6 +1,10 @@
 package com.example.linee_langer.ui.screens
 
+import android.Manifest
+import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +23,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -70,6 +73,26 @@ fun SettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
+    } else {
+        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        // Controlliamo se almeno uno dei permessi (totale o parziale) è stato concesso
+        val isGranted = permissions.entries.any { it.value }
+        if (isGranted) {
+            settingsViewModel.triggerImageRecovery()
+            Toast.makeText(context, "Scansione avviata...", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Permesso negato. Impossibile recuperare immagini.", Toast.LENGTH_LONG).show()
+        }
+    }
 
     if(showEmailDialog){
         SupportDialog(
@@ -91,6 +114,7 @@ fun SettingsScreen(
         title = "Settings",
         notificationViewModel = notificationViewModel,
         canNavigateBack = false,
+        snackbarHostState = snackbarHostState
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -121,9 +145,14 @@ fun SettingsScreen(
                         trailing = {
                             Switch(
                                 checked = isDark ?: isSystemInDarkTheme(),
-                                onCheckedChange = {
-                                    settingsViewModel.toggleTheme(it)
-                                    Toast.makeText(context, "Cambiato Tema!", Toast.LENGTH_SHORT).show()
+                                onCheckedChange = { isChecked ->
+                                    settingsViewModel.toggleTheme(isChecked)
+                                    val message = if(isChecked){
+                                        "Tema scuro attivato"
+                                    } else {
+                                        "Tema chiaro attivato"
+                                    }
+                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }
                             )
                         }
@@ -135,11 +164,8 @@ fun SettingsScreen(
                         icon = R.drawable.ic_memory,
                         onClick = {
                             scope.launch {
-                                val result = settingsViewModel.clearCache() // Funzione suspend
-                                snackbarHostState.showSnackbar(
-                                    message = if(result) "Cache pulita" else "Errore pulizia",
-                                    duration = SnackbarDuration.Short
-                                )
+                                settingsViewModel.clearCache() // Funzione suspend
+                                Toast.makeText(context, "Pulizia avviata...", Toast.LENGTH_SHORT).show()
                             }
                         }
                     )
@@ -157,9 +183,15 @@ fun SettingsScreen(
                             // Possiamo usare uno switch per attivare/disattivare il WorkManager
                             Switch(
                                 checked = autoCleanEnabled,
-                                onCheckedChange = {
-                                    settingsViewModel.toggleAutoClean(it)
-                                    Toast.makeText(context, "Cambio polizia automatico!", Toast.LENGTH_SHORT).show()
+                                onCheckedChange = { isChecked ->
+                                    settingsViewModel.toggleAutoClean(isChecked)
+
+                                    val message = if (isChecked) {
+                                        "Pulizia automatica attivata"
+                                    } else {
+                                        "Pulizia automatica disattivata"
+                                    }
+                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 }
                             )
                         }
@@ -174,6 +206,7 @@ fun SettingsScreen(
                         subtitle = "Ricollega le foto salvate nel telefono",
                         icon = R.drawable.ic_retrieve_image,
                         onClick = {
+                            launcher.launch(permissionsToRequest)
                             settingsViewModel.triggerImageRecovery()
                             Toast.makeText(context, "Scansione avviata...", Toast.LENGTH_SHORT).show()
                         }

@@ -22,6 +22,12 @@ interface AnalysisDao {
     suspend fun insertLines(lines: List<LangerLineEntity>)
 
     @Transaction
+    @Query("SELECT * FROM skin_analyses WHERE date = :timestamp LIMIT 1")
+    suspend fun getAnalysisByTimestamp(timestamp: Long): SkinAnalysisEntry?
+
+    @Query("UPDATE skin_analyses SET imagePath = :newPath WHERE date = :timestamp")
+    suspend fun updateImagePathByTimestamp(timestamp: Long, newPath: String)
+    @Transaction
     @Query("SELECT * FROM skin_analyses ORDER BY date DESC")
     fun getAllAnalysesWithLines(): Flow<List<AnalysisWithLines>>
 

@@ -143,7 +143,8 @@ private fun WelcomeHeaderHomepage(name: String, skinType: String) {
 @Composable
 private fun LastAnalysisCard(
     analysis: AnalysisWithLines?,
-    onNavigateToCamera: () -> Unit
+    onNavigateToCamera: () -> Unit,
+    onNavigateToHistory: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -173,6 +174,12 @@ private fun LastAnalysisCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
                 )
+                Button(
+                    onClick = onNavigateToHistory,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onPrimary, contentColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Vai alla sezione storico", fontWeight = FontWeight.Bold)
+                }
             } else {
                 Text(
                     text = "Nessuna analisi eseguita",
@@ -299,7 +306,8 @@ private fun HomeContent(
         item {
             LastAnalysisCard(
                 analysis = state.lastAnalysis,
-                onNavigateToCamera = onNavigateToCamera
+                onNavigateToCamera = onNavigateToCamera,
+                onNavigateToHistory = onNavigateToHistory
             )
         }
 

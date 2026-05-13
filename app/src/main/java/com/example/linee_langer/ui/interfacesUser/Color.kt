@@ -16,3 +16,7 @@ import androidx.compose.ui.graphics.Color
     // Functional Colors
     val ErrorRed = Color(0xFFB00020)
     val SuccessGreen = Color(0xFF4BB543)
+
+    // Toni per Dark Mode
+    val DarkBackground = Color(0xFF121212)
+    val DarkSurface = Color(0xFF1E1E1E)
