@@ -249,7 +249,7 @@ fun PrivacyPolicyCard(){
 
             // Botton for details
             val context = LocalContext.current
-            val privacyUrl = "https://tuo-username.github.io/privacy-policy.html"
+            val privacyUrl = "https:///privacy-policy.html"
             TextButton(
                 onClick = { val builder = CustomTabsIntent.Builder()
                 val customTabsIntent = builder.build()
