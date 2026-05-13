@@ -1,0 +1,2 @@
+The "Router."
+Swaps between the Home, Camera, and Onboarding screens and the other screens
