@@ -71,6 +71,7 @@ import com.example.linee_langer.R
 import com.example.linee_langer.domain.models.LangerLine
 import com.example.linee_langer.logic.ImageUtils.toBitmapFixed
 import com.example.linee_langer.logic.saveBitmapAndFinish
+import com.example.linee_langer.ui.components.GalleryAlignmentScreen
 import com.example.linee_langer.ui.components.LangerOverlay
 import com.example.linee_langer.ui.interfacesUser.AppDimension
 import com.example.linee_langer.ui.components.PermissionDeniedUI
@@ -133,6 +134,27 @@ fun CameraScreen(
                     )
                 }
 
+                // NUOVO STATO: Allineamento Immagine Galleria
+                // Se abbiamo caricato un'immagine da editare ma non abbiamo ancora le linee rilevate
+                analysisViewModel.galleryBitmapToEdit != null && !analysisViewModel.hasLines -> {
+                    GalleryAlignmentScreen(
+                        bitmap = analysisViewModel.galleryBitmapToEdit!!,
+                        onConfirm = { scale, offset, rotation ->
+                            analysisViewModel.analyzeGalleryImageWithTransform(
+                                source = analysisViewModel.galleryBitmapToEdit!!,
+                                scale = scale,
+                                rotation = rotation,
+                                offsetX = offset.x,
+                                offsetY = offset.y
+                            )
+                        },
+                        onCancel = {
+                            analysisViewModel.clearGalleryEdit()
+                            // Aggiungi una funzione nel VM per resettare galleryBitmapToEdit = null
+                        }
+                    )
+                }
+
                 isAnalyzing -> {
                     AnalysisLoadingScreen()
                     LaunchedEffect(Unit) {
@@ -141,15 +163,15 @@ fun CameraScreen(
                     }
                 }
                 // 1. Mostra la Preview finale solo se l'analisi è finita e abbiamo la foto
-                capturedBitmap != null -> {
+                capturedBitmap != null || analysisViewModel.hasLines -> {
+                    val bitmapToShow = capturedBitmap ?: analysisViewModel.galleryBitmapToEdit!!
                     ImagePreviewScreen(
-                        bitmap = capturedBitmap!!,
+                        bitmap = bitmapToShow,
                         analysisViewModel = analysisViewModel,
                         onConfirm = { linesToSave ->
-                            analysisViewModel.setBodyPart(selectedBodyPart?.id ?: "unknown")
                             saveBitmapAndFinish(
                                 context = context,
-                                bitmap = capturedBitmap!!,
+                                bitmap = bitmapToShow,
                                 lines = linesToSave,
                                 analysisViewModel = analysisViewModel,
                                 notificationViewModel = notificationViewModel,
@@ -158,7 +180,7 @@ fun CameraScreen(
                         },
                         onRetake = {
                             capturedBitmap = null
-                            analysisViewModel.cleanLines()
+                            analysisViewModel.clearGalleryEdit() // Reset foto galleria
                         }
                     )
                 }
@@ -179,7 +201,7 @@ fun CameraScreen(
 
             // Indicatore dell'area scelta (il "chip" in alto)
             // CHIP IN ALTO (Solo se una parte è selezionata e non siamo in analisi/preview)
-            if (selectedBodyPart != null && capturedBitmap == null && !isAnalyzing) {
+            if (selectedBodyPart != null && capturedBitmap == null && !isAnalyzing && analysisViewModel.galleryBitmapToEdit == null) {
                 Surface(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -274,11 +296,6 @@ private fun CameraContent(
     ) { uri ->
         uri?.let {
             analysisViewModel.onImageSelected(it)
-            val inputStream = context.contentResolver.openInputStream(it)
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            bitmap?.let { b ->
-                onImageCaptured(b)
-            }
         }
     }
 

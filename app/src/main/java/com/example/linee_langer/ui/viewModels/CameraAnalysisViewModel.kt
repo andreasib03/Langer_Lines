@@ -65,6 +65,59 @@ class CameraAnalysisViewModel @Inject constructor(
     var selectedBodyPartId by mutableStateOf<String?>(null)
         private set
 
+    var galleryBitmapToEdit by mutableStateOf<Bitmap?>(null)
+        private set
+
+    fun analyzeGalleryImageWithTransform(
+        source: Bitmap,
+        scale: Float,
+        rotation: Float,
+        offsetX: Float,
+        offsetY: Float
+    ) {
+
+        viewModelScope.launch(Dispatchers.Default) {
+            isProcessing = true
+            try {
+                val matrix = Matrix().apply {
+                    postScale(scale,scale)
+                    postRotate(rotation)
+
+                    postTranslate(offsetX,offsetY)
+                }
+
+                val transformedBitmap = Bitmap.createBitmap(
+                    source, 0, 0, source.width, source.height, matrix, true
+                )
+
+                val results = detector.detectLines(
+                    transformedBitmap,
+                    partId = selectedBodyPartId ?: "face"
+                )
+
+                withContext(Dispatchers.Main){
+                    detectedLines = results
+                    galleryBitmapToEdit = transformedBitmap
+
+                    repositoryNotification.addNotification(
+                        title = "Analisi Galleria Completata",
+                        description = "Rilevate ${results.size} linee nell'immagine allineata."
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Manual alignment analysis failed", e)
+            } finally {
+                isProcessing = false
+            }
+        }
+    }
+
+    fun clearGalleryEdit() {
+        galleryBitmapToEdit = null
+        selectedImageUri = null
+        cleanLines() // Pulisce anche le linee rilevate
+        Log.d("CameraAnalysisVM", "Gallery edit cleared")
+    }
 
     private var lastAnalysisTime = 0L
     fun analyzeLiveFrame(imageProxy: ImageProxy) {
@@ -116,47 +169,6 @@ class CameraAnalysisViewModel @Inject constructor(
 
     }
 
-    fun analyzeGalleryImage(uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            isProcessing = true
-            try {
-                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                getApplication<Application>().contentResolver.openInputStream(uri)?.use {
-                    BitmapFactory.decodeStream(it, null, options)
-                }
-
-                // FIX: Ora inSampleSize viene calcolato DOPO aver riempito options.outWidth
-                options.inSampleSize = calculateInSampleSize(options)
-                options.inJustDecodeBounds = false
-                options.inPreferredConfig = Bitmap.Config.ARGB_8888
-
-                val bitmap = getApplication<Application>().contentResolver.openInputStream(uri)?.use {
-                    BitmapFactory.decodeStream(it, null, options)
-                }
-
-
-
-                bitmap?.let { b ->
-                    val correctedBitmap = rotateImageIfRequired(b, uri)
-                    val results = detector.detectLines(correctedBitmap, partId = selectedBodyPartId ?: "face")
-                    withContext(Dispatchers.Main) {
-                        detectedLines = results
-                        repositoryNotification.addNotification(
-                            title = "Analisi completata",
-                            description = if (results.isNotEmpty())
-                                "Rilevate ${results.size} linee di tensione"
-                            else "Nessuna linea rilevata nell'immagine"
-                        )
-                    }
-                }
-
-            } catch (e: Exception) {
-                Log.e("MainViewModel", "Gallery analysis failed: ${e.message}")
-            } finally {
-                isProcessing = false
-            }
-        }
-    }
 
     /**
      * Stabilizza le linee combinando i vettori tra frame consecutivi per vicinanza geometrica.
@@ -284,11 +296,29 @@ class CameraAnalysisViewModel @Inject constructor(
 
     fun onImageSelected(uri: Uri){
         selectedImageUri = uri
-        detectedLines = emptyList()
-        previousLines = emptyList()
-        analyzeGalleryImage(uri)
-        // You would typically load the Uri into a Bitmap here before calling runActualAnalysis
-        // For now, using your simulate method
+        cleanLines()
+        isProcessing = true
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val context = getApplication<Application>()
+                val options = BitmapFactory.Options().apply { inSampleSize = 1 }
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    val bitmap = BitmapFactory.decodeStream(stream, null, options)
+                    bitmap?.let {
+                        val corrected = rotateImageIfRequired(it, uri)
+                        withContext(Dispatchers.Main) {
+                            // SETTIAMO LA BITMAP: Questo farà apparire lo schermo di Edit nella UI
+                            galleryBitmapToEdit = corrected
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Failed to load gallery image", e)
+            } finally {
+                isProcessing = false
+            }
+        }
     }
 
 
