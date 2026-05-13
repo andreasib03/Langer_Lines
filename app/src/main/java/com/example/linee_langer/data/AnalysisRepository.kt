@@ -54,9 +54,6 @@ class AnalysisRepository @Inject constructor(
         dao.deleteAnalysisEntry(analysis)
     }
 
-    suspend fun deleteAnalysisWithId(id: Long){
-        dao.deleteAnalysisById(id)
-    }
 
     suspend fun deleteAllAnalysis(){
         dao.deleteAll()

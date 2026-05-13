@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AnalysisDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAnalysis(analysis: SkinAnalysisEntry): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

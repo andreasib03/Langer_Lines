@@ -239,23 +239,35 @@ fun LangerTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = onNotificationClick) {
+            IconButton(
+                onClick = onNotificationClick,
+                modifier = Modifier.size(48.dp)) {
                 BadgedBox(
                     badge = {
                         if (unreadCount > 0) {
                             Badge(
                                 containerColor = Color.Red,
-                                contentColor = Color.White
+                                contentColor = Color.White,
+                                modifier = Modifier.offset(x = (-2).dp, y = 2.dp)
                             ) {
                                 // Se sono troppe (es. > 9), puoi mostrare "9+"
-                                Text(if (unreadCount > 9) "9+" else unreadCount.toString())
+                                Text(
+                                    text = if (unreadCount > 9) "9+" else unreadCount.toString(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 10.sp, // Forza una dimensione piccola
+                                        fontWeight = FontWeight.Bold,
+                                        lineHeight = 12.sp // Evita che il testo venga tagliato verticalmente
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 3.dp)
+                                )
                             }
                         }
                     }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_bell),
-                        contentDescription = stringResource(R.string.notifications)
+                        contentDescription = stringResource(R.string.notifications),
+                        modifier = Modifier.size(32.dp)
                     )
                 }
             }

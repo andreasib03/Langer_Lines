@@ -29,14 +29,16 @@ fun saveBitmapAndFinish(
         try {
             val timestamp = System.currentTimeMillis()
 
-            saveBitmapToGallery(context, bitmap, timestamp)
+            val savedUri = saveBitmapToGallery(context, bitmap, timestamp)
 
-            analysisViewModel.saveAnalysisResult(
-                date = timestamp,
-                bitmap = bitmap
-            )
-
-            notificationViewModel.sendAnalysisSuccessNotification()
+            if(savedUri != null) {
+                analysisViewModel.saveAnalysisResult(
+                    date = timestamp,
+                    bitmap = bitmap
+                )
+                analysisViewModel.scheduleFullSync()
+                notificationViewModel.sendAnalysisSuccessNotification()
+            }
 
             withContext(Dispatchers.Main){
                 onClose()

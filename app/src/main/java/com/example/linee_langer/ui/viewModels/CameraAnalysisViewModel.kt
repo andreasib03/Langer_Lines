@@ -21,8 +21,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.linee_langer.dao.AnalysisWithLines
 import com.example.linee_langer.data.AnalysisRepository
-import com.example.linee_langer.data.AuthRepository
-import com.example.linee_langer.data.FirebaseRepository
 import com.example.linee_langer.data.NotificationRepository
 import com.example.linee_langer.db.SkinAnalysisEntry
 import com.example.linee_langer.domain.models.LangerLine
@@ -34,11 +32,11 @@ import com.example.linee_langer.ui.utils.saveImageToPublicGallery
 import com.example.linee_langer.ui.utils.toEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import androidx.core.graphics.scale
 
 @HiltViewModel
 class CameraAnalysisViewModel @Inject constructor(
@@ -46,8 +44,6 @@ class CameraAnalysisViewModel @Inject constructor(
     private val detector: LangerDetector,
     private val repositorAnalysis: AnalysisRepository,
     private val repositoryNotification: NotificationRepository,
-    private val authRepository: AuthRepository,
-    private val firebaseRepository: FirebaseRepository
 ) : AndroidViewModel(application) {
 
     var detectedLines by mutableStateOf<List<LangerLine>>(emptyList())
@@ -74,7 +70,7 @@ class CameraAnalysisViewModel @Inject constructor(
 
         val currentTime = System.currentTimeMillis()
 
-        if(isProcessing || (currentTime - lastAnalysisTime) < 150){
+        if(isProcessing || (currentTime - lastAnalysisTime) < 180){
             imageProxy.close()
             return
         }
@@ -93,10 +89,13 @@ class CameraAnalysisViewModel @Inject constructor(
                     // Esegui la conversione pesante in un thread di background
                     val bitmap = proxy.toBitmapFixed()
 
-                    // Opzionale: Scala il bitmap qui se il detector è troppo lento
-                    // val scaled = Bitmap.createScaledBitmap(bitmap, 480, 640, true)
+                    val analysisBitmap = bitmap.scale(360, 480, false)
 
-                    val results = detector.detectLines(bitmap, 0.5f, currentPartId)
+                    if(bitmap != analysisBitmap)
+                        bitmap.recycle()
+
+                    val results = detector.detectLines(analysisBitmap, 0.5f, currentPartId)
+
 
                     val stabilized = smoothLinesProximity(previousLines, results)
                     previousLines = stabilized
@@ -104,11 +103,12 @@ class CameraAnalysisViewModel @Inject constructor(
                     withContext(Dispatchers.Main) {
                         detectedLines = stabilized
                     }
+
+                    analysisBitmap.recycle()
                 }
             } catch (e: Exception){
                 Log.e("MainViewModel", "Live analysis failed: ", e)
             } finally {
-                delay(100)
                 isProcessing = false
             }
         }
@@ -125,7 +125,7 @@ class CameraAnalysisViewModel @Inject constructor(
                 }
 
                 // FIX: Ora inSampleSize viene calcolato DOPO aver riempito options.outWidth
-                options.inSampleSize = calculateInSampleSize(options, 1080, 1080)
+                options.inSampleSize = calculateInSampleSize(options)
                 options.inJustDecodeBounds = false
                 options.inPreferredConfig = Bitmap.Config.ARGB_8888
 
@@ -164,23 +164,10 @@ class CameraAnalysisViewModel @Inject constructor(
     private fun smoothLinesProximity(oldLines: List<LangerLine>, newLines: List<LangerLine>): List<LangerLine> {
         if (oldLines.isEmpty()) return newLines
 
-        val alpha = 0.5f // Fattore di reattività (più è basso, più la linea è stabile ma lenta)
+        val alpha = 0.4f // Fattore di reattività (più è basso, più la linea è stabile ma lenta)
 
-        val cellSize = 0.1f
-
-        // 1. Crea mappa spaziale delle vecchie linee
-        val spatialMap = mutableMapOf<Pair<Int, Int>, LangerLine>()
-        oldLines.forEach { line ->
-            val key = (line.startX / cellSize).toInt() to (line.startY / cellSize).toInt()
-            spatialMap[key] = line
-        }
-
-        return newLines.map { newLine ->
-            val key = (newLine.startX / cellSize).toInt() to (newLine.startY / cellSize).toInt()
-            // Cerca solo nella cella corrente o adiacenti (molto più veloce)
-            val closestOldLine = spatialMap[key]
-                ?: spatialMap[key.first - 1 to key.second]
-                ?: spatialMap[key.first + 1 to key.second]
+        return newLines.take(60).mapIndexed { index, newLine ->
+            val closestOldLine = oldLines.getOrNull(index)
 
             if (closestOldLine != null) {
                 newLine.copy(
@@ -231,7 +218,7 @@ class CameraAnalysisViewModel @Inject constructor(
             isProcessing = true
             try {
                 val context = getApplication<Application>()
-                val fileName = "Langer_${date}"
+                val fileName = "Langer_${date}.jpg"
 
                 val publicUri = saveImageToPublicGallery(context,bitmap,fileName)
 
@@ -256,7 +243,7 @@ class CameraAnalysisViewModel @Inject constructor(
         }
     }
 
-    private fun scheduleFullSync() {
+    fun scheduleFullSync() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -275,16 +262,31 @@ class CameraAnalysisViewModel @Inject constructor(
             .enqueue()
     }
 
-    private suspend fun executeLocalSave(date: Long, path:String){
-        val analysis = SkinAnalysisEntry(
-            date = date,
-            bodyPartId = selectedBodyPartId ?: "Generico",
-            imagePath = path,
-            resultSummary = "Analisi effettuata con successo"
-        )
-        val linesToSave = detectedLines.map { it.toEntity() }
+    suspend fun executeLocalSave(date: Long, path:String){
 
-        repositorAnalysis.saveFullAnalysis(analysis, linesToSave)
+        withContext(Dispatchers.IO){
+            try {
+                val analysis = SkinAnalysisEntry(
+                    date = date,
+                    bodyPartId = selectedBodyPartId ?: "Generico",
+                    imagePath = path,
+                    resultSummary = "Analisi effettuata con successo"
+                )
+
+                val linesToSave = detectedLines.map { it.toEntity() }
+
+                repositorAnalysis.saveFullAnalysis(analysis, linesToSave)
+
+                Log.d("CameraAnalysisVM", "Salvataggio database completato per l'analisi del $date")
+            } catch (e: Exception) {
+                Log.e("CameraAnalysisVM", "Errore nel salvataggio locale", e)
+                throw e // Rilanciamo l'errore per gestirlo in saveBitmapAndFinish
+            }
+        }
+
+
+
+
     }
 
 
@@ -302,7 +304,7 @@ class CameraAnalysisViewModel @Inject constructor(
         return repositorAnalysis.getAnalysisById(id)
     }
 
-    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int) : Int {
+    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int = 1080, reqHeight: Int = 1080) : Int {
         val (height: Int, width: Int) = options.outHeight to options.outWidth
         var inSampleSize = 1
         if(height > reqHeight || width > reqWidth){

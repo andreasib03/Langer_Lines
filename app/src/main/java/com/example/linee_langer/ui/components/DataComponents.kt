@@ -1,5 +1,7 @@
 package com.example.linee_langer.ui.components
 
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -31,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.linee_langer.R
+import androidx.core.net.toUri
 
 @Composable
 fun DataHeaderSection() {
@@ -215,7 +219,7 @@ fun PrivacyPolicyCard(){
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_star), // Use a shield icon or lock
+                    painter = painterResource(id = R.drawable.ic_shield),
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.padding(12.dp)
@@ -244,10 +248,14 @@ fun PrivacyPolicyCard(){
             Spacer(modifier = Modifier.height(16.dp))
 
             // Botton for details
+            val context = LocalContext.current
+            val privacyUrl = "https://tuo-username.github.io/privacy-policy.html"
             TextButton(
-                onClick = { /* Open the link for the complete policy */ }
+                onClick = { val builder = CustomTabsIntent.Builder()
+                val customTabsIntent = builder.build()
+                customTabsIntent.launchUrl(context, privacyUrl.toUri())}
             ) {
-                Text(
+            Text(
                     stringResource(R.string.complete_privacy),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary

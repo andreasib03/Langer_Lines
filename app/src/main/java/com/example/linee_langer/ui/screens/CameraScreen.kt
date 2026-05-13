@@ -3,6 +3,7 @@ package com.example.linee_langer.ui.screens
 import android.Manifest
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -55,7 +56,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -142,11 +142,11 @@ fun CameraScreen(
                         onConfirm = {
                             analysisViewModel.setBodyPart(selectedBodyPart?.id ?: "unknown")
                             saveBitmapAndFinish(
-                                context,
-                                capturedBitmap!!,
-                                analysisViewModel,
-                                notificationViewModel,
-                                onClose
+                                context = context,
+                                bitmap = capturedBitmap!!,
+                                analysisViewModel = analysisViewModel,
+                                notificationViewModel = notificationViewModel,
+                                onClose = onClose
                             )
                         },
                         onRetake = {
@@ -294,13 +294,18 @@ private fun CameraContent(
             factory = { ctx ->
                 // Creiamo solo la vista nella factory
                 PreviewView(ctx).apply {
-                    implementationMode = PreviewView.ImplementationMode.PERFORMANCE
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                     scaleType = PreviewView.ScaleType.FIT_CENTER
                 }
             },
             update = { previewView ->
                 // La logica di binding si sposta qui: viene chiamata ogni volta che lensFacing cambia
+
                 val currentLens = lensFacing
+                val lastLens = previewView.getTag(R.id.lens_facing_tag) as? Int
+                if (lastLens == currentLens)
+                    return@AndroidView
+                previewView.setTag(R.id.lens_facing_tag, currentLens)
 
                 val executor = ContextCompat.getMainExecutor(context)
                 cameraProviderFuture.addListener({
@@ -471,34 +476,43 @@ fun ImagePreviewScreen(
 ) {
     val lineCount = analysisViewModel.detectedLines.size
 
-    // Logica di valutazione (puoi aggiustare queste soglie)
+    // Logica di valutazione
     val qualityStatus = when {
         lineCount > 40 -> QualityInfo(
             stringResource(R.string.optime),
             Color(0xFF4CAF50),
             R.drawable.ic_check
         )
-        lineCount > 15 -> QualityInfo(stringResource(R.string.sufficient), Color(0xFFFFC107), R.drawable.ic_warning) // WARNING YELLOW
-        else -> QualityInfo(stringResource(R.string.low), Color(0xFFF44336), R.drawable.ic_danger) // WARNING RED IC_warning
+        lineCount > 15 -> QualityInfo(
+            stringResource(R.string.sufficient),
+            Color(0xFFFFC107),
+            R.drawable.ic_warning
+        )
+        else -> QualityInfo(
+            stringResource(R.string.low),
+            Color(0xFFF44336),
+            R.drawable.ic_danger
+        )
     }
 
+    // CONTENITORE PRINCIPALE (BoxScope)
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black),
-        contentAlignment = Alignment.Center
     ) {
-        // Usiamo lo stesso Box per Foto e Overlay
+        // 1. Box centrale per Foto e Overlay
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(3f / 4f) // FORZA il rapporto 4:3 della camera
+                .align(Alignment.Center)
+                .aspectRatio(3f / 4f)
         ) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit // Deve combaciare con FIT_CENTER della camera
+                contentScale = ContentScale.Fit
             )
 
             LangerOverlay(
@@ -506,13 +520,13 @@ fun ImagePreviewScreen(
                 modifier = Modifier.fillMaxSize()
             )
         }
-    }
 
-        // 3. Info Panel Superiore (User Friendly Feedback)
+        // 2. Info Panel Superiore (Figlio diretto del Box principale)
         Column(
             modifier = Modifier
-                .padding(top = 60.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .align(Alignment.TopCenter) // Corretto: Figlio di Box
+                .padding(top = 60.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Surface(
@@ -543,60 +557,90 @@ fun ImagePreviewScreen(
             if (lineCount <= 15) {
                 Text(
                     text = stringResource(R.string.advice_near),
-                    color = Color.White.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.padding(top = 8.dp)
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .background(Color.Red.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
                 )
             }
         }
 
-        // 4. Barra dei pulsanti inferiore (già esistente, leggermente rifinita)
+        // 3. Barra dei pulsanti inferiore (Figlio diretto del Box principale)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 60.dp, start = 40.dp, end = 40.dp),
+                .align(Alignment.BottomCenter) // Corretto: Figlio di Box
+                .padding(bottom = 40.dp, start = 50.dp, end = 50.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Pulsante Riprova
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                IconButton(
-                    onClick = onRetake,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
-                        .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_close),
-                        contentDescription = stringResource(R.string.retry),
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
-                Text(stringResource(R.string.retry), color = Color.White, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
-            }
+            ActionButton(
+                label = stringResource(R.string.retry),
+                icon = R.drawable.ic_close,
+                color = Color.White.copy(alpha = 0.2f),
+                onClick = onRetake
+            )
 
-            // Pulsante Conferma
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                IconButton(
-                    onClick = onConfirm,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .background(qualityStatus.color, CircleShape)
-                        .shadow(elevation = 8.dp, shape = CircleShape)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_check),
-                        contentDescription = stringResource(R.string.confirm),
-                        tint = if (qualityStatus.color == Color(0xFFFFC107)) Color.Black else Color.White,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-                Text(stringResource(R.string.confirm), color = Color.White, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
-            }
+            ActionButton(
+                label = stringResource(R.string.confirm),
+                icon = R.drawable.ic_check,
+                color = qualityStatus.color,
+                onClick = onConfirm
+            )
         }
     }
+}
+
+@Composable
+fun ActionButton(
+    label: String,
+    icon: Int,
+    color: Color,
+    onClick: () -> Unit
+) {
+    val size = 72.dp
+    val iconSize = 32.dp
+
+    // Determiniamo il colore del contenuto (icona) in base allo sfondo
+    // Se il colore è giallo (sufficiente), l'icona è nera, altrimenti bianca
+    val contentColor = if (color == Color(0xFFFFC107)) Color.Black else Color.White
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(color)
+                .clickable { onClick() }
+                .border(
+                    width = 1.dp,
+                    color = Color.White.copy(alpha = 0.3f),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = label,
+                tint = contentColor,
+                modifier = Modifier.size(iconSize)
+            )
+        }
+
+        Text(
+            text = label,
+            color = Color.White,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
 
 
 

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,9 +45,12 @@ class HistoryViewModel @Inject constructor(
     )
 
     fun deleteAnalysis(analysisWithLines: AnalysisWithLines, snackbarHostState: SnackbarHostState){
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                repositorAnalysis.deleteFullAnalysis(analysisWithLines.analysis)
+
+                withContext(Dispatchers.IO) {
+                    repositorAnalysis.deleteFullAnalysis(analysisWithLines.analysis)
+                }
 
                 val result = snackbarHostState.showSnackbar(
                     message = "Analisi del ${analysisWithLines.analysis.bodyPartId} eliminata",
@@ -73,7 +77,4 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-    fun lastAnalysis(){
-
-    }
 }
