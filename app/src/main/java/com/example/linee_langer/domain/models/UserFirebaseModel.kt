@@ -5,5 +5,5 @@ data class UserFirebaseModel(
     val name: String = "",
     val eta: String = "",
     val skinType: String = "",
-    val goalId: Int = 0
+    val goalId: List<String> = emptyList()
 )

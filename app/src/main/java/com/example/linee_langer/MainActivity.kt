@@ -1,6 +1,5 @@
 package com.example.linee_langer
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -15,15 +14,12 @@ import androidx.compose.ui.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import com.example.linee_langer.data.AuthRepository
-import com.example.linee_langer.data.dataStore
-import com.example.linee_langer.ui.interfacesUser.MyAppTheme
+import com.example.linee_langer.data.remote.AuthRepository
+import com.example.linee_langer.ui.theme.LangerTheme
 import com.example.linee_langer.ui.navigation.AppNavigation
-import com.example.linee_langer.ui.screens.Screen
-import com.example.linee_langer.ui.viewModels.SettingsViewModel
+import com.example.linee_langer.ui.navigation.Screen
+import com.example.linee_langer.ui.feature.settings.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 //entry point
@@ -48,9 +44,10 @@ class MainActivity : ComponentActivity() {
 
             val useDarkTheme = userDarkModeSelection ?: isSystemInDarkTheme()
 
-            val isLoggedIn = remember { authRepository.isUserLoggedIn() }
+            val currentUser by authRepository.currentUserFlow.collectAsState(initial = authRepository.currentUser)
 
-            MyAppTheme(darkTheme = useDarkTheme) {
+
+            LangerTheme(darkTheme = useDarkTheme) {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -64,59 +61,31 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         else -> {
-                            // FIX: considera ENTRAMBE le condizioni:
-                            //   1. onboarding completato nel DataStore
-                            //   2. utente effettivamente loggato in Firebase Auth
-                            // Se una delle due manca → OnBoarding
-                            val startDestination = if (onboardingDone == true && isLoggedIn) {
-                                Screen.Home.route
-                            } else {
-                                Screen.OnBoarding.route
+                            val startDestination = when {
+                                currentUser == null -> Screen.Welcome.route
+                                onboardingDone == false -> Screen.Welcome.route
+                                else -> "main_flow"
                             }
-                            AppNavigation(
-                                startDestination = startDestination,
-                                preferencesManager = settingsViewModel.userPreferencesManager
-                            )
+                            Log.d("NAV_DEBUG", "startDestination = $startDestination")
+
+                            // usata per riforzare la ricreazione di AppNavigation quando startDestination cambia dopo logout o cancellazione utente
+                            key(startDestination) {
+                                AppNavigation(startDestination = startDestination)
+                            }
                         }
                     }
                 }
             }
-
-            val context = LocalContext.current
-
-            LaunchedEffect(Unit) {
-                printDataStoreContents(context) // eliminate in prod, solo per debug se i dati correctly saved con datastore
-
-            }
-
         }
 
 
-    }
 
-    // out of class
-    suspend fun printDataStoreContents(context: Context) {
-        try {
-            // Usa il context per login al dataStore
-            // Nota: che 'dataStore' sia accessible (non private nel Manager)
-            // o usa prefManager.dataStore
-            context.dataStore.data.first().let { prefs ->
-                val map = prefs.asMap()
-                Log.d("DATASTORE_CHECK", "--- CONTENT DATASTORE ---")
-                if (map.isEmpty()) {
-                    Log.d("DATASTORE_CHECK", "Il DataStore è empty.")
-                } else {
-                    map.forEach { (key, value) ->
-                        Log.d("DATASTORE_CHECK", "${key.name} = $value")
-                    }
-                }
-                Log.d("DATASTORE_CHECK", "---------------------------")
-            }
-        } catch (e: Exception) {
-            Log.e("DATASTORE_CHECK", "Error: ${e.message}")
-        }
     }
-
 
 
 }
+
+
+
+
+

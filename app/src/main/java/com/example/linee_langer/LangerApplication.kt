@@ -1,19 +1,18 @@
 package com.example.linee_langer
 
 import android.app.Application
-import androidx.hilt.work.HiltWorker
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import androidx.work.WorkerFactory
-import com.example.linee_langer.data.UserPreferencesManager
-import com.example.linee_langer.service.CacheCleanupWorker
-import com.example.linee_langer.service.ReminderWorker
+import com.example.linee_langer.data.local.UserPreferencesManager
+import com.example.linee_langer.worker.CacheCleanupWorker
+import com.example.linee_langer.worker.ReminderWorker
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -24,6 +23,7 @@ class LangerApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var userPreferencesManager: UserPreferencesManager
 
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
@@ -35,7 +35,7 @@ class LangerApplication : Application(), Configuration.Provider {
 
     override fun onCreate(){
         super.onCreate()
-        CoroutineScope(Dispatchers.IO).launch {
+        applicationScope.launch {
             // .first() legge il valore corrente e chiude il collect
             val isEnabled = userPreferencesManager.isAutoCleanEnabledFlow.first()
             if (isEnabled) {

@@ -1,6 +1,10 @@
 package com.example.linee_langer.data
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.example.linee_langer.data.local.UserPreferencesManager
+import com.example.linee_langer.data.local.dataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,7 +18,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideUserPreferencesManager(@ApplicationContext context: Context): UserPreferencesManager {
-        return UserPreferencesManager(context)
+    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+        return context.dataStore
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserPreferencesManager(dataStore: DataStore<Preferences>): UserPreferencesManager {
+        return UserPreferencesManager(dataStore)
     }
 }

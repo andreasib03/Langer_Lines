@@ -1,3 +1,0 @@
-The "State Manager."
-It calls the Logic classes in a background thread (Dispatchers.Default) so the UI doesn't lag.
-It holds the Uri and the analysis results.
