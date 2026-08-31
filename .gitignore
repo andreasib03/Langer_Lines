@@ -1,5 +1,4 @@
-*.iml
-.gradle
+.gradle/
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -8,8 +7,14 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
-/build
+build/
+**/build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+*.iml
+.cxx/
+opencv/build/
+opencv/.cxx/
+app/src/main/res/raw/*.mp4
