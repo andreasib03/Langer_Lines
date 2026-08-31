@@ -1,208 +1,635 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Linee_Langer</string>
-    <string name="welcome">Benvenuto!</string>
-    <string name="onboarding_title">On boarding</string>
-    <string name="homepage_welcome">Scopriamo la tua pelle oggi ✨</string>
-    <string name="quick">Analisi Rapida</string>
-    <string name="check">Controlla le linee di Langer in pochi secondi.</string>
-    <string name="profile">Il mio Profilo</string>
-    <string name="show_progress">Visualizza i progressi e i dati salvati.</string>
-    <string name="advice">Suggerimenti</string>
-    <string name="personalized_advice">Consigli personalizzati per la tua skincare.</string>
-    <string name="analyzed">Analisi effettuata il 22 Aprile.</string>
 
+    <!-- ══════════════════════════════════════════════════════════════════════
+         APP
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="app_name">Langer Lines</string>
+    <string name="langer_line_app">Langer Lines</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         NAVIGAZIONE
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="nav_home">Principale</string>
+    <string name="nav_camera">Analisi</string>
+    <string name="nav_history">Cronologia</string>
+    <string name="nav_profile">Profilo</string>
+    <string name="nav_settings">Impostazioni</string>
+    <string name="back">Indietro</string>
+    <string name="close">Chiudi</string>
+    <string name="home">Principale</string>
+    <string name="settings">Impostazioni</string>
+    <string name="history">Cronologia</string>
+    <string name="advice">Consigli</string>
+    <string name="routine">Routine</string>
+    <string name="analysis">Analisi</string>
+    <string name="privacy">Dati e Privacy</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         WELCOME SCREEN
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="welcome_subtitle">Analizza le linee di tensione cutanea con precisione scientifica.</string>
+    <string name="welcome_cta_label">Inizia ora</string>
+    <string name="welcome_already_account">Hai già un account? Accedi</string>
+    <string name="or_label">oppure</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         AUTENTICAZIONE
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="auth_login">Accedi</string>
+    <string name="auth_login_subtitle">Bentornato! Accedi al tuo account.</string>
+    <string name="auth_register">Registrati</string>
+    <string name="auth_register_subtitle">Crea il tuo account per iniziare.</string>
+    <string name="auth_google">Continua con Google</string>
+    <string name="auth_email_hint">Email</string>
+    <string name="auth_password_hint">Password</string>
+    <string name="auth_first_name">Nome</string>
+    <string name="auth_last_name">Cognome</string>
+    <string name="auth_birth_date">Data di nascita</string>
+    <string name="auth_birth_date_placeholder">GG/MM/AAAA</string>
+    <string name="auth_pick_date">Seleziona data</string>
+    <string name="auth_verify_email_title">Verifica la tua email</string>
+    <string name="auth_verify_email_body">Abbiamo inviato un link di verifica a %1$s</string>
+    <string name="auth_resend">Reinvia email</string>
+    <string name="auth_verified">Ho verificato</string>
+
+    <string name="login_start">Accedi</string>
+    <string name="login_no_account_prompt">Non hai un account?</string>
+    <string name="register_save">Registrati</string>
+    <string name="register_step_personal">Dati personali</string>
+    <string name="register_step_credentials">Credenziali</string>
+    <string name="register_already_have_account">Hai già un account?</string>
+    <string name="noaccount">Non hai un account? Registrati</string>
+    <string name="have_account">Ho già un account. Accedi</string>
+
+    <string name="credentials">Compila le credenziali</string>
+    <string name="show_password">Mostra password</string>
+    <string name="hide_password">Nascondi password</string>
+
+    <string name="google_data_collection_subtitle">Completa il tuo profilo con le informazioni mancanti.</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         VERIFICA EMAIL
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="verify_email_title">Verifica la tua email</string>
+    <string name="verify_email_body">Ti abbiamo inviato un link. Cliccalo per continuare.</string>
+    <string name="verify_email_clicked">Ho già cliccato il link</string>
+    <string name="verify_email_resend">Invia di nuovo l\'email</string>
+    <string name="verify_email_resend_cooldown">Reinvia tra %1$d secondi</string>
+    <string name="verify_email_polling_hint">Stiamo controllando automaticamente ogni pochi secondi. Puoi anche premere il pulsante dopo aver verificato.</string>
+    <string name="back_to_welcome">Torna alla schermata iniziale</string>
+    <string name="email_sent">Email inviata!</string>
+    <string name="email_send_error">Errore nell\'invio dell\'email.</string>
+    <string name="email_not_verified">Email non ancora verificata. Controlla la tua casella di posta.</string>
+    <string name="account_created_verify">Account creato! Controlla la tua email per completare la registrazione.</string>
+    <string name="send_verification">Invia verifica</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         MESSAGGI DI ERRORE
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="error_generic">Si è verificato un errore. Riprova.</string>
+    <string name="error_network">Connessione non disponibile.</string>
+    <string name="error_save">Errore durante il salvataggio.</string>
+    <string name="error_unknown">Errore sconosciuto. Riprova.</string>
+    <string name="error_fill_all_fields">Compila tutti i campi per continuare.</string>
+    <string name="error_email_not_verified">Verifica la tua email prima di accedere.</string>
+    <string name="error_invalid_email">Inserisci un\'email valida.</string>
+    <string name="error_password_too_short">La password deve avere almeno 8 caratteri.</string>
+    <string name="error_password_weak">La password deve contenere almeno 8 caratteri, una lettera e un numero.</string>
+    <string name="error_age_too_young">Devi avere almeno 13 anni per registrarti.</string>
+    <string name="error_age_too_old">Inserisci una data di nascita valida.</string>
+    <string name="error_date_format">Formato data non valido. Usa GG/MM/AAAA.</string>
+    <string name="error_google_signin">Accesso con Google non riuscito. Riprova.</string>
+    <string name="error_save_failed">Errore durante il salvataggio. Controlla lo spazio disponibile.</string>
+    <string name="error_gallery_analysis_failed">Analisi galleria non riuscita. Riprova.</string>
+    <string name="error_capture_failed">Scatto non riuscito. Riprova.</string>
+    <string name="error_image_recovery">Errore nel recupero delle immagini.</string>
+    <string name="error_no_email_client">Nessun client email trovato sul dispositivo.</string>
+
+    <!-- Prevenzione account duplicati -->
+    <string name="error_email_exists_google">Esiste già un account con questa email. Accedi con Google.</string>
+    <string name="error_email_exists_password">Esiste già un account con questa email. Accedi con email e password.</string>
+    <string name="error_email_exists_generic">Esiste già un account con questa email. Utilizza il metodo di accesso originale.</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         ONBOARDING
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="onboarding_welcome">Benvenuto in\nLanger Lines</string>
+    <string name="onboarding_subtitle">Analizza la tua pelle con precisione scientifica.</string>
+    <string name="onboarding_name_hint">Come ti chiami?</string>
+    <string name="onboarding_age_hint">Quanti anni hai?</string>
+    <string name="onboarding_skin_type_title">Che tipo di pelle hai?</string>
+    <string name="onboarding_goal_title">Qual è il tuo obiettivo?</string>
+    <string name="onboarding_next">Continua</string>
+    <string name="onboarding_finish">Inizia</string>
+    <string name="onboarding_ready">Tutto pronto!</string>
+    <string name="finish_settings">Stiamo preparando la tua esperienza personalizzata…</string>
+    <string name="infos">Compila tutti i campi per continuare.</string>
+
+    <!-- Dati personali -->
+    <string name="personal">Informazioni personali</string>
+    <string name="name_full">Nome completo</string>
+    <string name="example_name">Es. Marco </string>
+    <string name="example_last_name">Es. Rossi</string>
+    <string name="age_label">Età</string>
+    <string name="age_placeholder">Es. 25</string>
     <string name="user">Utente</string>
-    <string name="no_email">Nessuna Email</string>
-    <string name="history">Storico Analisi</string>
-    <string name="routine">Routine Consigliata</string>
-    <string name="privacy">Privacy &amp; Dati</string>
-    <string name="detailed_analysis">Dettaglio Analisi</string>
-    <string name="text">La direzione delle linee indica un’ottima elasticità in quest’area.</string>
 
-
-    <string name="preferences">Preferenze</string>
-    <string name="dark_mode">Modalità Scura</string>
-    <string name="notification_push">Notifiche Push</string>
-    <string name="desc_notification_push">Ricevi avvisi per le tue analisi</string>
-    <string name="faq">Supporto &amp; FAQ</string>
-
-    <string name="routine_massage">Routine di Massaggio</string>
-    <string name="desc_massage">Segui la direzione delle linee di Langer durante l’applicazione delle creme per migliorare l’assorbimento e l’elasticità.</string>
-    <string name="hydratation">Idratazione Profonda</string>
-    <string name="desc_hydratation">Le linee rilevate indicano aree di tensione. Mantieni un’idratazione costante per prevenire segni di espressione marcati."</string>
-
-    <string name="infos">Devi compilare tutte le informazioni</string>
-    <string name="personal">Raccontaci di te</string>
-    <string name="name_full">Nome Completo</string>
-    <string name="example_name">es. Mario Rossi</string>
-    <string name="email_full">Indirizzo Email</string>
-    <string name="example_email">mariorossi@gmail.com</string>
-    <string name="purpose">Qual è il tuo obiettivo?</string>
-    <string name="muscle">Aumenta massa muscolare</string>
-    <string name="muscle_sub">Allenamento</string>
-    <string name="muscle_desc">Focus su forza e guadagno muscolare</string>
-    <string name="cut">Perdere peso</string>
-    <string name="cut_sub">Cardio</string>
-    <string name="cut_desc">Brucia calorie in modo efficace</string>
-    <string name="finish_settings">È tutto pronto!</string>
-    <string name="finish">Fine</string>
-    <string name="next">Successiva</string>
-
-
-
-    <string name="support_email_address">langerlines@outlook.it</string>
-    <string name="support_subject_prefix">Langer App: %1$s</string>
-
-    <string name="support_technical_info_header">
-        \n\n---------------------------\n
-        DATI TECNICI (Generati automaticamente):\n
-        Modello: %1$s\n
-        Versione Android: %2$s\n
-        App Version: %3$s\n
-        ---------------------------
-    </string>
-
-    <string name="error_no_email_client">Nessuna app di posta installata.</string>
-
-    // Skin Type
-    <string name="unspecified">Non specificato</string>
-    <string name="secca">Secca</string>
-    <string name="grassa">Grassa</string>
-    <string name="mista">Mista</string>
-    <string name="normale">Normale</string>
-    <string name="description_secca">Pelle sottile che tende a tirare</string>
-    <string name="description_grassa">Pelle lucida con pori visibili</string>
-    <string name="description_mista">Lucida in zona T, secca altrove</string>
-    <string name="description_normale">Pelle equilibrata e compatta</string>+
-
-
+    <!-- Tipo di pelle -->
     <string name="first_question">Qual è il tuo tipo di pelle?</string>
-    <string name="description_skintype">Questo aiuterà l\'algoritmo a calcolare meglio la tensione cutanea.</string>
-    <string name="contact">Contatta il supporto</string>
+    <string name="description_skintype">Seleziona il tipo che descrive meglio la tua pelle.</string>
+    <string name="secca">Secca</string>
+    <string name="description_secca">Produce poco sebo, può risultare tesa, ruvida e soggetta a desquamazione.</string>
+    <string name="grassa">Grassa</string>
+    <string name="description_grassa">Produce sebo in eccesso, appare lucida ed è più predisposta a pori dilatati e imperfezioni.</string>
+    <string name="mista">Mista</string>
+    <string name="description_mista">Combina zone grasse (fronte, naso e mento) con zone normali o secche.</string>
+    <string name="normale">Normale</string>
+    <string name="description_normale">Ben equilibrata, con una buona idratazione e poche imperfezioni.</string>
 
-    <string name="completed">Analisi completata</string>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         OBIETTIVI
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="purpose">I tuoi obiettivi</string>
+    <string name="goal_subtitle">Seleziona uno o più obiettivi che descrivono il tuo utilizzo delle linee di Langer.</string>
+    <string name="goal_none_selected">Nessun obiettivo selezionato</string>
+    <string name="goal_count_selected">%1$d obiettivi selezionati</string>
+
+    <string name="goal_surgical_planning_title">Pianificazione chirurgica</string>
+    <string name="goal_surgical_planning_sub">Ottimizzare le incisioni cutanee</string>
+    <string name="goal_surgical_planning_desc">Individuo le linee di tensione per orientare le incisioni in modo da ridurre la trazione sui tessuti e migliorare la guarigione.</string>
+
+    <string name="goal_scar_minimization_title">Minimizzare le cicatrici</string>
+    <string name="goal_scar_minimization_sub">Ridurre la visibilità delle cicatrici post-operatorie</string>
+    <string name="goal_scar_minimization_desc">Utilizzo le linee di Langer per orientare le suture così che la cicatrice si integri con la tensione naturale della pelle.</string>
+
+    <string name="goal_preoperative_eval_title">Valutazione pre-operatoria</string>
+    <string name="goal_preoperative_eval_sub">Documentare la distribuzione delle linee prima di un intervento</string>
+    <string name="goal_preoperative_eval_desc">Creo una mappa delle linee di tensione per pianificare l\'approccio chirurgico e documentare il caso clinico.</string>
+
+    <string name="goal_study_research_title">Studio e ricerca</string>
+    <string name="goal_study_research_sub">Approfondire l\'anatomia cutanea</string>
+    <string name="goal_study_research_desc">Analizzo la distribuzione delle linee di Langer per scopi accademici, di ricerca o di formazione professionale.</string>
+
+    <string name="goal_healing_monitor_title">Monitoraggio della guarigione</string>
+    <string name="goal_healing_monitor_sub">Seguire l\'evoluzione di una cicatrice nel tempo</string>
+    <string name="goal_healing_monitor_desc">Confronto le rilevazioni nel tempo per verificare che la guarigione segua il corretto allineamento con le linee di tensione cutanea.</string>
+
+    <string name="goal_patient_consult_title">Consultazione con il paziente</string>
+    <string name="goal_patient_consult_sub">Spiegare visivamente la procedura</string>
+    <string name="goal_patient_consult_desc">Mostro al paziente la mappa delle linee di Langer per spiegare la logica dell\'approccio chirurgico e le aspettative sul risultato estetico.</string>
 
 
-    <string name="new_scan">Nuova Scansione</string>
-    <string name="analyze_new_lines">Analizza le tue linee ora</string>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         HOME
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="home_greeting">Ciao, %1$s!</string>
+    <string name="home_last_analysis">Ultima analisi</string>
+    <string name="home_no_analysis">Nessuna analisi ancora</string>
+    <string name="home_start_analysis">Inizia la prima analisi</string>
+    <string name="home_daily_advice">Consigli del giorno</string>
+    <string name="home_see_all">Vedi tutti</string>
+    <string name="today_advice">Ecco la situazione della tua pelle oggi</string>
+    <string name="today_advice_2">I tuoi consigli del giorno</string>
+    <string name="last_scan">Ultima scansione</string>
+    <string name="go_to_history">Vai allo storico</string>
+    <string name="no_analysis_done">Nessuna analisi eseguita</string>
+    <string name="analyze_now">Analizza ora</string>
+    <string name="quick_action">Azioni rapide</string>
+    <string name="new_analysis">Nuova analisi</string>
+    <string name="scan_face_line">Scansiona le linee</string>
+    <string name="see_your_progress">Vedi i progressi</string>
+    <string name="advice_dedicated">Consigli dedicati</string>
+    <string name="skin_info">Info pelle</string>
+    <string name="what_is_collagene">Cos\'è il collagene</string>
+    <string name="last_analysis_date">Eseguita il %1$s</string>
+    <string name="not_set">Non impostato</string>
 
-    <string name="log_datastore_user">Errore nel salvataggio profilo</string>
-    <string name="datastore">DataStore</string>
 
-    <string name="optization_skin_care">Ottimizza la tua Skin Care</string>
-    <string name="advice_skin">Suggerimenti basati sulla scienza delle linee di tensione cutanea.</string>
-    <string name="note_advice">Nota: Queste informazioni hanno scopo puramente informativo e non sostituiscono il parere di un dermatologo professionista.</string>
-    <string name="meaning_langer">Cosa sono le Linee di Langer?</string>
-    <string name="description_meaning_langer">Le linee di Langer (o linee di tensione) corrispondono all\'orientamento delle fibre di collagene nel derma. Seguirle aiuta a mantenere l\'elasticità della pelle.</string>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         FOTOCAMERA
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="camera_advice">Punta la fotocamera sulla zona da analizzare</string>
+    <string name="question_camera">Quale zona vuoi analizzare?</string>
+    <string name="gallery">Galleria</string>
+    <string name="analysis_loading">Analisi in corso…</string>
+    <string name="identification">Identificazione linee di Langer</string>
+    <string name="retry">Riprova</string>
+    <string name="confirm">Conferma</string>
+    <string name="saving">Salvataggio…</string>
+    <string name="advice_near">Avvicina la fotocamera per migliorare il risultato</string>
+    <string name="camera_flip">Inverti fotocamera</string>
+    <string name="camera_area_label">Area: %1$s</string>
+
+    <!-- Qualità analisi -->
+    <string name="quality_optimal">Ottima</string>
+    <string name="quality_sufficient">Sufficiente</string>
+    <string name="quality_low">Bassa</string>
+    <string name="quality_label">Qualità %1$s: %2$d linee</string>
+
+    <!-- Permessi -->
+    <string name="permission_camera_title">Permesso fotocamera necessario</string>
+    <string name="permission_camera_body">L\'app ha bisogno della fotocamera per analizzare le linee di Langer.</string>
+    <string name="permission_grant">Concedi permesso</string>
+    <string name="permission_denied_title">Permesso negato</string>
+    <string name="permission_denied_body">Hai negato il permesso in modo permanente. Abilitalo nelle Impostazioni di sistema.</string>
+    <string name="permission_open_settings">Apri Impostazioni</string>
+    <string name="camera_permission_title">Permesso fotocamera necessario</string>
+    <string name="camera_permission_body">L\'app ha bisogno della fotocamera per analizzare le linee di Langer.</string>
+    <string name="grant_permission">Concedi permesso</string>
+    <string name="open_settings">Apri Impostazioni</string>
+
+    <!-- OpenCV -->
+    <string name="opencv_unavailable_title">Analisi non disponibile</string>
+    <string name="opencv_unavailable_body">Il motore di rilevamento non è stato caricato su questo dispositivo.</string>
+    <string name="analysis_unavailable">Analisi non disponibile</string>
+    <string name="analysis_engine_missing">Il motore di rilevamento non è stato caricato su questo dispositivo.</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         CRONOLOGIA
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="history_empty_title">Nessuna analisi</string>
+    <string name="history_empty_body">Le tue analisi appariranno qui dopo la prima scansione.</string>
+    <string name="history_delete_confirm">Eliminare questa analisi?</string>
+    <string name="history_deleted">Analisi eliminata</string>
+    <string name="history_undo">Annulla</string>
+    <string name="history_image_desc">Immagine analisi %1$s</string>
+    <string name="detected_lines">%1$d linee rilevate</string>
+    <string name="analysis_title">Analisi — %1$s</string>
+    <string name="one_analysis">Analisi trovata</string>
+    <string name="more_analysis">Analisi trovate</string>
+    <string name="noanalysis">Nessuna analisi presente.</string>
+    <string name="show_analysis">Vai all\'homepage per registrare nuove scansioni.</string>
+    <string name="detailed_analysis">Analisi dettagliate</string>
+    <string name="new_scan">Nuova scansione</string>
+    <string name="analyze_new_lines">Analizza nuove linee di Langer!</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         DETTAGLIO ANALISI
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="detail_title">Dettaglio analisi</string>
+    <string name="detail_date">Data</string>
+    <string name="detail_zone">Zona analizzata</string>
+    <string name="detail_lines_count">Linee rilevate</string>
+    <string name="detail_synced">Sincronizzato</string>
+    <string name="detail_synced_yes">Sì</string>
+    <string name="detail_synced_pending">In attesa</string>
+    <string name="detail_synced_error">Errore (immagine non trovata)</string>
+
+    <!-- Tensione -->
+    <string name="tension_low">Tensione: Bassa</string>
+    <string name="tension_medium">Tensione: Media</string>
+    <string name="tension_high">Tensione: Alta</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         CONSIGLI DEL GIORNO
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="advice_title">Consigli del giorno</string>
+    <string name="advice_info">Info linee di Langer</string>
+    <string name="advice_disclaimer">Queste informazioni hanno scopo puramente educativo e non costituiscono parere medico.</string>
+    <string name="note_advice">Le informazioni fornite da questa applicazione hanno esclusivamente scopo educativo e non sostituiscono il parere di un medico o professionista sanitario qualificato. In presenza di condizioni cutanee o dubbi sulla propria salute, è consigliabile consultare uno specialista.</string>
+
+    <!-- Categorie -->
+    <string name="category_hydration">Idratazione</string>
+    <string name="category_protection">Protezione</string>
+    <string name="category_massage">Massaggio</string>
+    <string name="category_cleansing">Detersione</string>
+    <string name="category_other">Altro</string>
+
+    <!-- Contenuti -->
+    <string name="routine_massage">Routine di cura della pelle</string>
+    <string name="desc_massage">Una routine di cura della pelle costante aiuta a mantenerla sana, elastica e protetta. Detergi il viso mattina e sera, applica un idratante adatto al tuo tipo di pelle, utilizza quotidianamente una protezione solare e dedica alcuni minuti a delicati massaggi seguendo le linee di Langer. La regolarità è fondamentale per ottenere benefici duraturi nel tempo.</string>
+    <string name="hydratation">Idratazione</string>
+    <string name="desc_hydratation">Mantenere la pelle ben idratata aiuta a preservarne elasticità, morbidezza e resistenza. Un\'adeguata idratazione contribuisce a ridurre la secchezza cutanea e a migliorare l\'aspetto generale della pelle.</string>
+    <string name="protection">Protezione solare</string>
+    <string name="desc_protection">Proteggere la pelle dai raggi UV aiuta a prevenire l\'invecchiamento precoce e a mantenere un aspetto sano. L\'uso costante di una protezione solare è una delle pratiche più efficaci per la cura della pelle.</string>
+    <string name="lines_massage">Massaggio lungo le linee di Langer</string>
+    <string name="lines_massage_desc">Eseguire delicati massaggi seguendo l\'orientamento delle linee di Langer può contribuire a ridurre le tensioni cutanee e a favorire una distribuzione più uniforme delle forze sulla pelle. Movimenti lenti e controllati aiutano a rispettare la naturale struttura dei tessuti.</string>
+    <string name="detergency">Detersione</string>
+    <string name="detergency_desc">La pulizia quotidiana della pelle rimuove impurità, sebo in eccesso e residui accumulati durante la giornata. Una corretta detersione prepara la pelle ai trattamenti successivi e ne favorisce il benessere.</string>
+    <string name="eyeliner">Cura del contorno occhi</string>
+    <string name="eyeliner_desc">La zona del contorno occhi è particolarmente delicata e richiede cure specifiche. Applicare prodotti idratanti con leggeri movimenti dall\'interno verso l\'esterno aiuta a mantenere la pelle elastica e a ridurre i segni di affaticamento.</string>
+    <string name="water">Idratazione profonda</string>
+    <string name="water_desc">Un\'idratazione profonda aiuta a mantenere la pelle elastica e resistente alle sollecitazioni quotidiane. L\'utilizzo regolare di prodotti idratanti contribuisce a rafforzare la barriera cutanea e a migliorare il comfort della pelle.</string>
+    <string name="massage">Massaggio fronte</string>
+    <string name="massage_desc">Massaggiare delicatamente la fronte con movimenti lenti e regolari può favorire il rilassamento dei muscoli facciali e ridurre le tensioni accumulate durante la giornata. Effettua i movimenti seguendo la naturale direzione della pelle.</string>
+    <string name="optization_skin_care">Ottimizzazioni per il trattamento della pelle</string>
+    <string name="advice_skin">Consigli per la cura e il trattamento della pelle</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         INFORMAZIONI SULLE LINEE DI LANGER
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="meaning_langer">Cosa sono le linee di Langer?</string>
+    <string name="description_meaning_langer">Le linee di Langer (dette anche linee di clivaggio o di tensione cutanea) sono mappe topografiche del corpo umano che indicano l\'orientamento naturale delle fibre di collagene nel derma.</string>
+    <string name="skin_info_dialog_title">Le linee di Langer</string>
+    <string name="skin_info_dialog_body">Le linee di Langer (o linee di tensione cutanea) sono linee immaginarie sulla pelle che seguono la direzione delle fibre di collagene nel derma. Furono descritte dall\'anatomista austriaco Karl Langer nel 1861. Sono fondamentali in chirurgia: un\'incisione parallela a queste linee guarisce con una cicatrice meno visibile.</string>
+    <string name="skin_info_dialog_close">Ho capito</string>
+    <string name="collagen_dialog_title">Il collagene cutaneo</string>
+    <string name="collagen_dialog_body">Il collagene è la proteina strutturale più abbondante della pelle, che costituisce circa il 70–80% del derma secco. Le fibre di collagene si organizzano in fasci orientati secondo direzioni preferenziali, chiamate linee di Langer o linee di tensione cutanea. Questa organizzazione conferisce alla pelle resistenza meccanica, elasticità e capacità di guarigione. Con l\'età, la produzione di collagene diminuisce progressivamente, causando riduzione della tonicità e comparsa di rughe.</string>
     <string name="understand">Ho capito</string>
 
 
-    <string name="advertisation">Tutte le immagini e le analisi delle linee di Langer vengono elaborate localmente sul tuo dispositivo. Non inviamo mai i tuoi dati biometrici ai nostri server.</string>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         PROFILO
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="profile_title">Profilo</string>
+    <string name="profile_managing">Gestione profilo</string>
+    <string name="profile_name">Nome</string>
+    <string name="profile_age">Età</string>
+    <string name="profile_skin_type">Tipo di pelle</string>
+    <string name="adjust_data">Gestisci i tuoi dati e l\'email</string>
+    <string name="image_profile">Immagine profilo</string>
+    <string name="change_image_profile">Cambia immagine profilo</string>
+    <string name="profile_image_updated">Email di verifica inviata!</string>
+    <string name="profile_image_no_updated">Errore durante l\'invio. Riprova più tardi.</string>
+    <string name="unspecified_email">Email non specificata</string>
+    <string name="unspecified">Non specificato</string>
+    <string name="your_data">I tuoi dati</string>
+    <string name="skin_type">Tipo di pelle</string>
+    <string name="name">Nome</string>
+    <string name="email_">Email in uso:</string>
+    <string name="email_not_valid">Email non valida</string>
+    <string name="email_google">Email Google</string>
+    <string name="save">Salva</string>
+    <string name="not_edible">Non modificabile</string>
+    <string name="changed_email">Modifica email</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         IMPOSTAZIONI
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="settings_title">Impostazioni</string>
+    <string name="settings_section_appearance">Aspetto</string>
+    <string name="settings_section_language">Lingua</string>
+    <string name="changing_language">Cambio lingua in corso…</string>
+    <string name="settings_section_notifications">Notifiche</string>
+    <string name="settings_section_data">Dati e Privacy</string>
+    <string name="settings_section_support">Supporto</string>
+    <string name="settings_dark_mode">Tema scuro</string>
+    <string name="settings_auto_clean">Pulizia automatica della cache</string>
+    <string name="settings_clean">Pulizia cache</string>
+    <string name="settings_auto_clean_description">Libera spazio eliminando i file temporanei</string>
+    <string name="settings_notifications">Notifiche analisi</string>
+    <string name="settings_export">Esporta i tuoi dati</string>
+    <string name="settings_logout">Esci dall\'account</string>
+    <string name="settings_logout_confirm">Vuoi davvero uscire dall\'account?</string>
+    <string name="settings_about">Informazioni su Langer Lines</string>
+    <string name="settings_support">Contatta il supporto</string>
+    <string name="settings_manutentation">Manutenzione</string>
+    <string name="settings_24h">Rimuove i file temporanei ogni 24 ore</string>
+    <string name="settings_recovery">Recupero</string>
+    <string name="settings_recovery_image">Recupera immagini</string>
+    <string name="settings_recovery_image_desc">Ricollega le foto salvate sul dispositivo</string>
+    <string name="recovery_scan_started">Scansione avviata…</string>
+    <string name="recovery_permission_denied">Permesso negato. Impossibile recuperare le immagini.</string>
+    <string name="cache_clean_started">Pulizia avviata…</string>
+    <string name="dark_mode">Tema scuro</string>
+    <string name="preferences">Preferenze</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         DATI E PRIVACY
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="data_title">I tuoi dati</string>
+    <string name="data_export">Esporta dati</string>
+    <string name="data_delete_all">Elimina tutti i dati</string>
+    <string name="data_delete_confirm_title">Eliminare tutti i dati?</string>
+    <string name="data_delete_confirm_body">Questa azione è irreversibile. Tutti i dati locali verranno eliminati definitivamente.</string>
+    <string name="data_privacy">Privacy Policy</string>
+    <string name="information">Informazioni</string>
+    <string name="description_information">Troverai tutti i tuoi dati salvati nell\'applicazione.</string>
+    <string name="export">Esporta dati</string>
+    <string name="download_export">Scarica lo storico delle analisi effettuate fino ad ora.</string>
+    <string name="delete">Elimina profilo</string>
+    <string name="description_delete">Elimina il tuo profilo e tutti i dati associati.</string>
     <string name="complete_privacy">Leggi la Privacy Policy completa</string>
-    <string name="information">Gestione informazioni</string>
-    <string name="description_information">Controlla come i tuoi dati vengono archiviati e gestiti sul dispositivo.</string>
-    <string name="export">Esporta i miei dati</string>
-    <string name="download_export">Scarica un backup locale delle tue analisi</string>
-    <string name="delete">Elimina tutti i dati</string>
-    <string name="description_delete">Rimuove permanentemente lo storico dal telefono</string>
-    <string name="priority">La tua privacy è prioritaria</string>
+
+    <!-- Sicurezza e pubblicità -->
+    <string name="priority">Sicurezza dei tuoi dati</string>
+    <string name="priority_content">La protezione dei tuoi dati personali e sanitari è la nostra priorità assoluta. Tutti i dati raccolti vengono utilizzati esclusivamente per le funzionalità dell\'app e non vengono condivisi con terze parti senza il tuo consenso esplicito. Adottiamo misure tecniche e organizzative avanzate — crittografia in transito, autenticazione sicura e controllo degli accessi — per garantire la riservatezza e l\'integrità delle tue informazioni.</string>
+    <string name="advertisation">Pubblicità e dati personali</string>
+    <string name="advertisation_content">Langer Lines è un\'applicazione clinica e di ricerca: non utilizziamo pubblicità di alcun tipo. Eventuali contenuti informativi saranno chiaramente identificati come tali e non interferiranno con l\'esperienza d\'uso. Nessun dato personale, sanitario o comportamentale viene venduto o ceduto a terze parti per finalità pubblicitarie.</string>
+
+    <!-- Privacy Policy -->
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_last_updated">Ultimo aggiornamento: giugno 2025</string>
 
 
-    <string name="problem">Segnala un problema</string>
-    <string name="email">Descrivi brevemente il problema. Includeremo automaticamente i dati tecnici del dispositivo.</string>
-    <string name="email_object">Oggetto</string>
-    <string name="email_body">"Descrizione del problema"</string>
-    <string name="email_body2">Scrivi qui…"</string>
-    <string name="email_send">Invia Email</string>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         ELIMINAZIONE ACCOUNT
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="verify_identity">Verifica identità</string>
+    <string name="elimination_data">Prima di procedere dobbiamo verificare che sia tu ad eseguire questa operazione.</string>
+    <string name="password">Password</string>
+    <string name="verify">Verifica</string>
     <string name="email_undo">Annulla</string>
+    <string name="are_you_sure">Sei sicuro?</string>
+    <string name="subtitle_are_you_sure">Questa operazione è irreversibile. Tutti i tuoi dati verranno eliminati definitivamente.</string>
+    <string name="delete_all">Elimina tutti i dati</string>
+    <string name="delete_yes">Sì, elimina</string>
+    <string name="delete_account_google_hint">Per eliminare l\'account verrà richiesta una nuova autenticazione con Google.</string>
+    <string name="delete_account_confirm_google">Conferma con Google</string>
+    <string name="delete_account_final">Elimina definitivamente</string>
 
 
-    <string name="analysis">Analisi</string>
-    <string name="noanalysis">analisi salvate</string>
-    <string name="show_analysis">Le tue scansioni appariranno qui</string>
-
-    <string name="back">indietro</string>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         NOTIFICHE
+         ══════════════════════════════════════════════════════════════════════ -->
     <string name="notifications">Notifiche</string>
-    <string name="no_notifications">Nessuna notifica presente</string>
-    <string name="delete_general">Elimina</string>
-    <string name="camera_advice">Inquadra la pelle da vicino\nper rilevare le linee</string>
-    <string name="question_camera">Cosa vuoi analizzare?</string>
+    <string name="no_notifications">Nessuna notifica al momento.</string>
+    <string name="notification_gallery_complete">Analisi galleria completata</string>
+    <string name="notification_lines_detected">Rilevate %d linee nell\'immagine analizzata.</string>
+    <string name="reminder_title">Monitoraggio pelle</string>
+    <string name="reminder_body">È passata una settimana dall\'ultima analisi. Controlla la tua pelle oggi!</string>
+    <string name="notification_count_overflow">9+</string>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         ESPORTAZIONE PDF
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="pdf_report_title">Report Analisi Langer</string>
+    <string name="pdf_generated_on">Generato il %1$s</string>
+    <string name="pdf_user_data">Dati Utente</string>
+    <string name="pdf_label_name">Nome:</string>
+    <string name="pdf_label_email">Email:</string>
+    <string name="pdf_label_skin_type">Tipo di Pelle:</string>
+    <string name="pdf_history_title">Storico Analisi con Immagini</string>
+    <string name="pdf_col_date">Data</string>
+    <string name="pdf_col_preview">Anteprima</string>
+    <string name="pdf_col_result">Risultato</string>
+    <string name="pdf_no_image">Nessuna immagine</string>
 
 
+    <!-- ══════════════════════════════════════════════════════════════════════
+         SUPPORTO E CONTATTI
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="contact">Contatti</string>
+    <string name="problem">Segnala un problema</string>
+    <string name="email">Invia un\'email all\'assistenza</string>
+    <string name="email_object">Oggetto</string>
+    <string name="email_body">Descrivi il tuo problema o la tua richiesta</string>
+    <string name="email_send">Invia</string>
+    <string name="support_email_address">support@langerlines.app</string>
+    <string name="support_technical_info_header">\n\n---\nDispositivo: %1$s\nAndroid: %2$s\nVersione app: %3$s</string>
+    <string name="support_subject_prefix">[Langer Lines] %1$s</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         FAQ
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="faq">FAQ</string>
+    <string name="faq_title">Domande frequenti</string>
+    <string name="faq_subtitle">Le risposte alle domande più comuni su Langer Lines.</string>
+
+    <string name="faq_q1">Come funziona il rilevamento delle linee di Langer?</string>
+    <string name="faq_a1">L\'app utilizza la fotocamera per acquisire un\'immagine della pelle. Un algoritmo basato su Structure Tensor analizza l\'orientamento delle fibre di collagene nel derma e traccia le linee di tensione cutanea. Il risultato viene salvato nella cronologia per il monitoraggio nel tempo.</string>
+
+    <string name="faq_q2">Come modifico il mio profilo?</string>
+    <string name="faq_a2">Vai alla schermata Profilo tramite la barra di navigazione. Puoi aggiornare la foto profilo, l\'email e le altre informazioni personali. Alcune modifiche richiedono la verifica dell\'identità tramite password.</string>
+
+    <string name="faq_q3">Come elimino il mio account?</string>
+    <string name="faq_a3">Vai in Impostazioni → Dati e Privacy → Elimina profilo. Dovrai confermare la tua identità. Tutti i tuoi dati verranno eliminati in modo permanente. Questa operazione non è reversibile.</string>
+
+    <string name="faq_q4">Come gestisco le notifiche?</string>
+    <string name="faq_a4">Puoi attivare o disattivare le notifiche in Impostazioni → Notifiche. L\'app invia promemoria settimanali se non hai effettuato analisi di recente. Puoi anche disattivarle dalle impostazioni di sistema del dispositivo.</string>
+
+    <string name="faq_q5">I miei dati sono al sicuro?</string>
+    <string name="faq_a5">Sì. Tutti i dati vengono trasmessi con crittografia HTTPS. Le immagini sono associate esclusivamente al tuo account e non sono accessibili ad altri utenti. Le password non vengono mai conservate in chiaro. Per maggiori dettagli consulta la nostra Privacy Policy.</string>
+
+    <string name="faq_q6">Come vengono trattate le fotografie?</string>
+    <string name="faq_a6">Le fotografie acquisite vengono utilizzate esclusivamente per l\'analisi delle linee di Langer. Vengono salvate localmente e, se la sincronizzazione è attiva, caricate in modo sicuro sul tuo account. Non vengono condivise con terzi né utilizzate per addestrare modelli di intelligenza artificiale.</string>
+
+    <string name="faq_q7">Posso usare l\'app per diagnosi mediche?</string>
+    <string name="faq_a7">No. Langer Lines è uno strumento di supporto per professionisti sanitari e ricercatori. Non sostituisce la valutazione clinica di un medico specialista. Le informazioni fornite non devono essere utilizzate come base per decisioni diagnostiche senza supervisione professionale.</string>
+
+    <string name="faq_q8">Cosa succede se dimentico la password?</string>
+    <string name="faq_a8">Nella schermata di accesso seleziona "Password dimenticata" e inserisci la tua email. Riceverai un link per reimpostare la password. Se hai effettuato l\'accesso con Google, non è necessaria una password: usa il pulsante "Continua con Google".</string>
+
+    <string name="faq_q9">Cos\'è il collagene e perché è importante?</string>
+    <string name="faq_a9">Il collagene è la proteina strutturale più abbondante della pelle, che costituisce circa il 70–80% del derma secco. Le sue fibre si organizzano in fasci orientati secondo direzioni preferenziali, chiamate linee di Langer o linee di tensione cutanea. Questa organizzazione conferisce alla pelle resistenza meccanica, elasticità e capacità di guarigione. Con l\'età, la produzione di collagene diminuisce progressivamente, causando riduzione della tonicità e comparsa di rughe.</string>
+
+    <string name="faq_q10">Quali zone del corpo posso analizzare?</string>
+    <string name="faq_a10">Puoi analizzare viso, fronte, guance, braccia, mani, torace, addome e gambe. Ogni zona utilizza un modello di rilevamento calibrato sull\'orientamento anatomico tipico delle linee di Langer in quella regione.</string>
+
+    <string name="faq_q11">Come guardo i video tutorial?</string>
+    <string name="faq_a11">Vai in Impostazioni → Video Tutorial. Troverai brevi video che spiegano come usare la fotocamera, interpretare i risultati e sfruttare al meglio le funzionalità dell\'app.</string>
+
+    <string name="faq_q12">Posso esportare la mia cronologia in PDF?</string>
+    <string name="faq_a12">Sì. Vai in Profilo → I tuoi dati → Esporta dati per generare un report PDF con i tuoi dati personali e lo storico completo delle analisi, comprese le immagini.</string>
+
+    <string name="faq_q13">L\'app è disponibile in altre lingue?</string>
+    <string name="faq_a13">Sì, Langer Lines è disponibile in Italiano e Inglese. Puoi cambiare lingua in qualsiasi momento da Impostazioni → Lingua.</string>
+
+    <string name="faq_q14">Cosa significa il livello di tensione mostrato dopo un\'analisi?</string>
+    <string name="faq_a14">Il livello di tensione (Bassa, Media, Alta) riassume l\'intensità media delle linee di Langer rilevate nella scansione. Puoi consultare i dettagli tecnici completi di ogni analisi nella sezione "Dettagli tecnici" della schermata di dettaglio.</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         VIDEO TUTORIAL
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="tutorial_video">Video tutorial</string>
+    <string name="tutorial_title">Video Tutorial</string>
+    <string name="tutorial_subtitle">Guarda i tutorial per imparare a usare l\'app al meglio.</string>
+    <string name="tutorial_play">Riproduci</string>
+    <string name="tutorial_not_available">Video non disponibile</string>
+    <string name="tutorial_intro_title">Introduzione all\'app</string>
+    <string name="tutorial_intro_desc">Una panoramica delle funzionalità principali di Langer Lines.</string>
+    <string name="tutorial_camera_title">Come usare la fotocamera</string>
+    <string name="tutorial_camera_desc">Impara ad acquisire immagini ottimali per l\'analisi delle linee.</string>
+    <string name="tutorial_analysis_title">Interpretare i risultati</string>
+    <string name="tutorial_analysis_desc">Come leggere la mappa delle linee di Langer e il pannello informativo.</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         SINCRONIZZAZIONE
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="sync_pending">In attesa di sincronizzazione</string>
+    <string name="sync_done">Sincronizzato</string>
+    <string name="version_label">Versione %1$s</string>
+    <string name="app_version">1.0.0 (BETA)</string>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         ZONE ANATOMICHE
+         ══════════════════════════════════════════════════════════════════════ -->
     <string name="face">Viso</string>
     <string name="arms">Braccia</string>
     <string name="legs">Gambe</string>
     <string name="hands">Mani</string>
+    <string name="forehead">Fronte</string>
+    <string name="cheek">Guancia</string>
+    <string name="chest">Torace</string>
+    <string name="abdomen">Addome</string>
 
 
-    <string name="log_failed_image">Fallimento durante la scrittura dell\'immagine</string>
-    <string name="log_success_image">Immagine salvata in MediaStore: %1$s</string>
-    <string name="log_system.loadLibrary">Libreria caricata con System.loadLibrary</string>
-    <string name="log_cache_clean">Pulizia cache completata con successo</string>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         LINGUA
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="language_italian">Italiano</string>
+    <string name="language_english">English</string>
+    <string name="language_deutschland">Deutschland</string>
+    <string name="language_french">French</string>
+    <string name="language_japanese">Japanese</string>
 
-    <string name="camera_screen_permission">Camera permission is required.</string>
-    <string name="camera_screen_permission_success">Grant Permission</string>
 
-    <string name="verify_identity">Verifica Identità</string>
-    <string name="elimination_data">Inserisci la password per procedere con l\'eliminazione dei dati.</string>
-    <string name="password">Password</string>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         LOG E MESSAGGI TECNICI (interni, non mostrati all'utente)
+         ══════════════════════════════════════════════════════════════════════ -->
 
-    <string name="verify">Verifica</string>
+    <!-- ══════════════════════════════════════════════════════════════════════
+         PANNELLO INFORMAZIONI TECNICHE ANALISI (analysis_info)
+         ══════════════════════════════════════════════════════════════════════ -->
+    <string name="analysis_info_summary">Sono state rilevate %1$d linee di Langer nella zona: %2$s.</string>
+    <string name="last_analysis_summary">%1$d linee rilevate — %2$s</string>
+    <string name="analysis_info_technical_title">Dettagli tecnici</string>
+    <string name="analysis_info_lines_count">Linee rilevate</string>
+    <string name="analysis_info_avg_intensity">Intensità media</string>
+    <string name="analysis_info_tension_level">Livello di tensione</string>
+    <string name="analysis_info_body_part">Zona analizzata</string>
 
-    <string name="are_you_sure">Sei assolutamente sicuro?</string>
-    <string name="subtitle_are_you_sure">Questa azione è irreversibile. Tutti i tuoi dati, lo storico delle analisi e le preferenze verranno eliminati permanentemente e l\'app verrà riavviata.</string>
-    <string name="delete_all">ELIMINA TUTTO</string>
+    <string name="confirm_email">Conferma modifica email</string>
+    <string name="confirm_email_question">Per motivi di sicurezza, inserisci la tua password per confermare la modifica dell\'indirizzo email.</string>
+    <string name="delete_general">Elimina</string>
+    <string name="email_body2">Es. Ho riscontrato un problema durante l\'analisi di una nuova scansione…</string>
 
-    <string name="delete_yes">Cancella</string>
+    <!-- Notifiche -->
+    <string name="notification_analysis_complete">Analisi completata</string>
+    <string name="notification_analysis_body">Le linee di Langer sono state salvate con successo nel tuo storico.</string>
 
-    <string name="analysis_title">Analisi %1$s</string>
-    <string name="detected_lines">%1$d linee rilevate</string>
+    <!-- Cronologia — formato titolo progressivo -->
+    <string name="history_item_title">Analisi %1$d: %2$s</string>
 
-    <string name="changed_email">Email cambiata correttamente!</string>
-    <string name="your_data">I tuoi dati</string>
+    <string name="permission_blocked">Permesso bloccato</string>
+    <string name="permission_blocked_desc">Hai negato il permesso in modo permanente. Abilitalo manualmente nelle Impostazioni dell\'app.</string>
+    <string name="dark_mode_activated">Tema scuro attivato</string>
+    <string name="light_mode_activated">Tema chiaro attivato</string>
+    <string name="automatic_clean_activated">Pulizia automatica attivata</string>
+    <string name="automatic_clean_deactivated">Pulizia automatica disattivata</string>
+    <string name="quality_status_lines">Qualità %1$s: %2$d linee</string>
+    <string name="body_part_label">Area: %1$s</string>
 
-    <string name="name">Nome</string>
-    <string name="skin_type">Tipo di Pelle</string>
+    <string name="error_delete_account">Errore durante la cancellazione dell\'account.</string>
+    <string name="error_wrong_password">Password errata. Riprova.</string>
+    <string name="error_auth_generic">Errore di autenticazione. Riprova.</string>
+    <string name="error_google_credential_invalid">Credenziale Google non valida.</string>
+    <string name="error_google_cancelled">Autenticazione Google annullata.</string>
+    <string name="error_google_reauth">Errore di ri-autenticazione Google.</string>
 
-    <string name="email_">Email</string>
-    <string name="email_not_valid">Formato email non valido</string>
-    <string name="email_google">Profilo gestito tramite Google Account</string>
-    <string name="email_not_verified">Email non verificata</string>
-    <string name="verify_email">Verifica email</string>
+    <string name="camera_istructions">Pizzica per zoomare e ruotare e trascina per centrare l\'area</string>
 
-    <string name="save">Salva</string>
-    <string name="not_edible">Non modificabile</string>
-    <string name="confirm_email">Conferma Cambio Email</string>
-    <string name="confirm_email_question">Per motivi di sicurezza, inserisci la tua password per confermare la modifica.</string>
-    <string name="confirm">Conferma</string>
 
-    <string name="image_profile">immagine profilo</string>
-    <string name="change_image_profile">Cambia immagine profilo</string>
-
-    <string name="login_langer">Accedi a Langer</string>
-    <string name="create_account">"Crea un Account</string>
-    <string name="credentials">Inserisci le tue credenziali per continuare</string>
-    <string name="register">Registrati per salvare le tue analisi</string>
-
-    <string name="login_start">Accedi ed Inizia</string>
-    <string name="register_save">Registrati e Salva</string>
-    <string name="login_google">Accedi con Google</string>
-
-    <string name="noaccount">Non hai un account? Registrati</string>
-    <string name="have_account">Hai già un account? Accedi</string>
-
-    <string name="change_area">Cambia area</string>
-    <string name="analyis_loading">Analisi biometrica in corso…</string>
-    <string name="identification">Identificazione linee di Langer</string>
-
-    <string name="close">Chiudi</string>
-    <string name="gallery">Galleria</string>
-
-    <string name="optime">Ottima</string>
-    <string name="sufficient">Sufficiente</string>
-    <string name="low">Scarsa</string>
-
-    <string name="advice_near">Prova ad avvicinarti o migliora l\'illuminazione</string>
-    <string name="retry">Riprova</string>
+    <string name="play">Riproduci</string>
+    <string name="pause">Pausa</string>
+    <string name="stop">Interrompi</string>
 
 </resources>

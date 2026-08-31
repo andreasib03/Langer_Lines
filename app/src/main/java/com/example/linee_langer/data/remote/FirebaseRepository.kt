@@ -1,14 +1,15 @@
 package com.example.linee_langer.data.remote
 
 import android.net.Uri
-import android.util.Log
 import com.example.linee_langer.core.database.entity.SkinAnalysisEntity
+import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.domain.models.UserFirebaseModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+private const val TAG = "FirebaseRepository"
 class FirebaseRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val storage: FirebaseStorage
@@ -21,7 +22,7 @@ class FirebaseRepository @Inject constructor(
             val document = firestore.collection("users").document(uid).get().await()
             document.toObject(UserFirebaseModel::class.java)
         } catch (e: Exception) {
-            Log.e("FirebaseRepo", "Error getting profile for UID $uid: ${e.message}")
+            logCaughtException(TAG, "Lettura profilo utente fallita (uid=$uid)", e)
             null
         }
     }
@@ -41,7 +42,7 @@ class FirebaseRepository @Inject constructor(
                                     .await()
             document.exists()
         } catch (e: Exception) {
-            Log.e("FirebaseRepo", "Errore durante il controllo esistenza profilo: ${e.message}")
+            logCaughtException(TAG, "Verifica esistenza profilo fallita (uid=$uid)", e)
             false
         }
 
@@ -52,7 +53,7 @@ class FirebaseRepository @Inject constructor(
             firestore.collection("users").document(uid).delete().await()
             true
         } catch(e: Exception) {
-            Log.e("FirebaseRepo", "Delete document error: ${e.message}")
+            logCaughtException(TAG, "Eliminazione documento utente fallita (uid=$uid)", e)
             false
         }
     }
@@ -64,7 +65,7 @@ class FirebaseRepository @Inject constructor(
             firestore.collection("users").document(uid).set(user).await()
             true
         } catch (e: Exception) {
-            Log.e("Save user profile problem: ", "${e.message}")
+            logCaughtException(TAG, "Salvataggio profilo utente fallito (uid=$uid)", e)
             false
         }
     }
@@ -75,7 +76,7 @@ class FirebaseRepository @Inject constructor(
             imageRef.putFile(imageUri).await() // Richiede import kotlinx.coroutines.tasks.await
             imageRef.downloadUrl.await().toString()
         } catch (e: Exception) {
-            Log.e("Upload skin image problem: ", "${e.message}")
+            logCaughtException(TAG, "Upload immagine skin fallito (uid=$uid)", e)
             null
         }
     }
@@ -98,7 +99,7 @@ class FirebaseRepository @Inject constructor(
                 .await()
             true
         } catch (e: Exception) {
-            Log.e("FirebaseRepo", "Sync analysis error: ${e.message}")
+            logCaughtException(TAG, "Sync analisi su Firestore fallita (uid=$uid, date=${analysis.date})", e)
             false
         }
     }

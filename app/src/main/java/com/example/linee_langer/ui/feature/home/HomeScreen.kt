@@ -49,8 +49,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
 import com.example.linee_langer.core.database.entity.dateFormatted
+import com.example.linee_langer.core.utils.summaryText
 import com.example.linee_langer.domain.models.SkinTypeIds
-import com.example.linee_langer.domain.models.TensionLevel
 import com.example.linee_langer.ui.shared.utils.DailyAdvice
 import com.example.linee_langer.ui.feature.history.HistoryViewModel
 import com.example.linee_langer.ui.feature.home.components.SkinInfoDialog
@@ -70,13 +70,7 @@ fun skinTypeLabel(skinType: String): String {
     }
 }
 
-@Composable
-private fun buildLastAnalysisSummary(analysis: AnalysisWithLines): String {
-    val lineCount = analysis.lines.size
-    val tensionLevel = TensionLevel.fromLines(analysis.lines)
-    val tensionText = stringResource(tensionLevel.toStringRes())
-    return stringResource(R.string.last_analysis_summary, lineCount, tensionText)
-}
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -200,7 +194,7 @@ private fun LastAnalysisCard(
 
             if (analysis != null) {
                 Text(
-                    text = buildLastAnalysisSummary(analysis),
+                    text = analysis.summaryText(),
                     style = typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onPrimary
@@ -536,7 +530,7 @@ private fun categoryColor(category: AdviceCategory): Color = when (category) {
     AdviceCategory.HYDRATION  -> colorScheme.primary
     AdviceCategory.PROTECTION -> colorScheme.tertiary
     AdviceCategory.MASSAGE    -> colorScheme.secondary
-    AdviceCategory.CLEANSING  -> colorScheme.surfaceTint
+    AdviceCategory.CLEANSING  -> colorScheme.tertiaryContainer
     AdviceCategory.OTHER      -> colorScheme.outline
 }
 

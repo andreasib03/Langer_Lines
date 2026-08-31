@@ -37,21 +37,29 @@ import com.example.linee_langer.ui.feature.camera.model.skinOptions
 import com.example.linee_langer.R
 import com.example.linee_langer.domain.models.SkinTypeIds
 import com.example.linee_langer.ui.theme.Dimens
-
-private fun skinTypeColor(id: String): Color = when (id) {
-    SkinTypeIds.DRY    -> Color(0xFFFFF3E0)  // beige chiaro — pelle secca
-    SkinTypeIds.OILY   -> Color(0xFFE8F5E9)  // verde acqua — pelle grassa
-    SkinTypeIds.MIXED  -> Color(0xFFF3E5F5)  // lavanda — pelle mista
-    SkinTypeIds.NORMAL -> Color(0xFFE3F2FD)  // azzurro — pelle normale
-    else               -> Color(0xFFF5F5F5)
+import com.example.linee_langer.ui.theme.appColors
+@Composable
+private fun skinTypeColor(id: String): Color {
+    val colors = MaterialTheme.appColors
+    return when (id) {
+        SkinTypeIds.DRY    -> colors.skinTypeDryBg
+        SkinTypeIds.OILY   -> colors.skinTypeOilyBg
+        SkinTypeIds.MIXED  -> colors.skinTypeMixedBg
+        SkinTypeIds.NORMAL -> colors.skinTypeNormalBg
+        else               -> colors.skinTypeDefaultBg
+    }
 }
 
-private fun skinTypeIconColor(id: String): Color = when (id) {
-    SkinTypeIds.DRY    -> Color(0xFFFF8F00)
-    SkinTypeIds.OILY   -> Color(0xFF388E3C)
-    SkinTypeIds.MIXED  -> Color(0xFF7B1FA2)
-    SkinTypeIds.NORMAL -> Color(0xFF1565C0)
-    else               -> Color(0xFF757575)
+@Composable
+private fun skinTypeIconColor(id: String): Color {
+    val colors = MaterialTheme.appColors
+    return when (id) {
+        SkinTypeIds.DRY    -> colors.skinTypeDryIcon
+        SkinTypeIds.OILY   -> colors.skinTypeOilyIcon
+        SkinTypeIds.MIXED  -> colors.skinTypeMixedIcon
+        SkinTypeIds.NORMAL -> colors.skinTypeNormalIcon
+        else               -> colors.skinTypeDefaultIcon
+    }
 }
 
 @Composable

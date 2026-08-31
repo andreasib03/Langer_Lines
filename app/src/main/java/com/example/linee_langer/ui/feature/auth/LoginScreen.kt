@@ -3,6 +3,7 @@ package com.example.linee_langer.ui.feature.auth
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -248,7 +249,10 @@ fun AuthTextField(
             onValueChange = onValueChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .then(if (onClick != null) Modifier else Modifier),
+                .then(
+                    if (onClick != null) Modifier.clickable(enabled = enabled) {onClick()}
+                    else Modifier
+                ),
             shape = RoundedCornerShape(Dimens.RadiusStandard),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,

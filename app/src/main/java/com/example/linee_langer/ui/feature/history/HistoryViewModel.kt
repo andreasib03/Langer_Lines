@@ -1,9 +1,9 @@
 package com.example.linee_langer.ui.feature.history
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
+import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.data.local.AnalysisRepository
 import com.example.linee_langer.data.local.NotificationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,12 +12,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+private const val TAG = "HistoryViewModel"
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val repositorAnalysis: AnalysisRepository,
@@ -25,9 +25,6 @@ class HistoryViewModel @Inject constructor(
 ) : ViewModel() {
 
     val history = repositorAnalysis.allAnalyses
-        .onEach {
-            list -> Log.d("HistoryVM", "Ricevute ${list.size} analisi dal DB")
-        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -61,7 +58,7 @@ class HistoryViewModel @Inject constructor(
                 }
                 _events.emit(HistoryEvent.ShowUndo(analysisWithLines))
             } catch (e: Exception){
-                Log.e("View model", "error deleting analysis", e)
+                logCaughtException(TAG, "Eliminazione analisi fallita (id=${analysisWithLines.analysis.id})", e)
             }
         }
     }
@@ -73,7 +70,7 @@ class HistoryViewModel @Inject constructor(
                     repositorAnalysis.restoreFullAnalysis(analysisWithLines)
                 }
             } catch (e: Exception) {
-                Log.e("HistoryViewModel", "Errore ripristino analisi", e)
+                logCaughtException(TAG, "Ripristino analisi fallito (id=${analysisWithLines.analysis.id})", e)
             }
         }
     }

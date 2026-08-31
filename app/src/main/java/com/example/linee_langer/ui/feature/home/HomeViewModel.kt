@@ -1,6 +1,5 @@
 package com.example.linee_langer.ui.feature.home
 
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import com.example.linee_langer.ui.shared.utils.DailyAdvice
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,7 +9,7 @@ import com.example.linee_langer.R
 import com.example.linee_langer.ui.shared.utils.AdviceCategory
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Calendar
-import java.util.Random
+import kotlin.random.Random
 
 
 @HiltViewModel

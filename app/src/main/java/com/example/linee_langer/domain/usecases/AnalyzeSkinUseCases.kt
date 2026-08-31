@@ -53,8 +53,10 @@ class AnalyzeSkinUseCases(private val detector: ILangerDetector) {
 
         // Sensibilità dinamica
         val sensitivity = when(partId.lowercase()) {
-            BodyPartIds.FACE -> 0.85f
+            BodyPartIds.FACE, BodyPartIds.FOREHEAD, BodyPartIds.CHEEK -> 0.85f
             BodyPartIds.ARMS, BodyPartIds.LEGS -> 0.65f
+            BodyPartIds.CHEST, BodyPartIds.ABDOMEN -> 0.6f
+            BodyPartIds.HANDS -> 0.65f
             else -> 0.5f
         }
 

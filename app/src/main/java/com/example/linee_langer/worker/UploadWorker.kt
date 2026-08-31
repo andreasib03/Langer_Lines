@@ -2,7 +2,6 @@ package com.example.linee_langer.worker
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -13,6 +12,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import androidx.core.net.toUri
 import androidx.work.workDataOf
+import com.example.linee_langer.core.utils.WorkerUtils.isRemoteUrl
+import com.example.linee_langer.core.utils.logCaughtException
 
 /**
  * Carica su Firebase Storage le immagini delle analisi non ancora sincronizzate,
@@ -26,6 +27,8 @@ import androidx.work.workDataOf
  *       .then(syncRequest)
  *       .enqueue()
  */
+
+private const val TAG = "UploadWorker"
 @HiltWorker
 class UploadWorker @AssistedInject constructor(
     @Assisted context: Context,
@@ -36,14 +39,12 @@ class UploadWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     companion object {
-        private const val TAG = "UploadWorker"
         const val KEY_UPLOADED_IDS = "uploaded_analysis_ids"
     }
 
     override suspend fun doWork(): Result {
         val uid = authRepository.currentUser?.uid
         if (uid.isNullOrBlank()) {
-            Log.w(TAG, "Utente non loggato, upload saltato")
             return Result.failure()
         }
 
@@ -52,7 +53,6 @@ class UploadWorker @AssistedInject constructor(
             val pending = analysisRepo.getUnsyncedAnalyses()
 
             if (pending.isEmpty()) {
-                Log.d(TAG, "Nessuna analisi da caricare")
                 return Result.success(
                     workDataOf(KEY_UPLOADED_IDS to longArrayOf())
                 )
@@ -66,7 +66,6 @@ class UploadWorker @AssistedInject constructor(
 
                 // 2. Salta se è già un URL remoto Firebase Storage
                 if (isRemoteUrl(localPath) || localPath.isBlank() || localPath == "internal_placeholder") {
-                    Log.d(TAG, "Immagine già su cloud per analisi ${analysis.id}, skip")
                     successfulIds.add(analysis.id)
                     return@forEach
                 }
@@ -74,31 +73,24 @@ class UploadWorker @AssistedInject constructor(
                 val imageUri = try {
                     localPath.toUri()
                 } catch (e: Exception) {
-                    Log.e(TAG, "URI non valido per analisi ${analysis.id}: $localPath",e)
-                    atLeastOneFailed = true
+                    logCaughtException(TAG, "Parsing URI locale non valido (path=$localPath)", e)
+                    analysisRepo.updateSyncFailed(analysis.id, true)
                     return@forEach
                 }
 
                 if (!uriIsAccessible(imageUri)) {
-                    Log.e(TAG, "File non accessibile per analisi ${analysis.id}")
-                    atLeastOneFailed = true
+                    analysisRepo.updateSyncFailed(analysis.id, true)
                     return@forEach
                 }
 
-                Log.d(TAG, "Caricamento immagine analisi ${analysis.id}...")
                 val remoteUrl = firebaseRepo.uploadSkinImage(uid, imageUri)
 
                 if(remoteUrl != null) {
-
                     // 3. Aggiorna il DB locale con l'URL di Firebase
                     analysisRepo.updateImagePath(analysis.id, remoteUrl)
                     successfulIds.add(analysis.id)
-                    Log.d(TAG, "Upload completato per analisi ${analysis.id}: $remoteUrl")
                 } else {
-                        Log.e(TAG, "Upload fallito per ${analysis.id}")
-                        atLeastOneFailed = true
-                        // Se l'immagine locale è persa, non possiamo riprovare all'infinito
-                        // Potresti decidere di segnare l'analisi come "orfana"
+                    atLeastOneFailed = true
                 }
             }
 
@@ -107,29 +99,17 @@ class UploadWorker @AssistedInject constructor(
             )
 
             if (atLeastOneFailed) {
-                Log.w(TAG, "Upload parziale: ${successfulIds.size} ok, riprovo per i falliti")
                 Result.retry()
-                // Nota: in caso di retry WorkManager non usa outputData.
-                // Gli ID riusciti verranno ri-tentati ma updateImagePath è idempotente
-                // (sovrascrive con lo stesso URL remoto), quindi non è un problema.
             } else {
                 Result.success(outputData)
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "Errore imprevisto durante l'upload: ${e.message}", e)
+            logCaughtException(TAG, "Upload analisi non sincronizzate fallito (uid=$uid)", e)
             Result.retry()
         }
     }
 
-
-    /**
-     * Controlla se il path è già un URL remoto (Firebase Storage o HTTPS generico).
-     * Non serve ricaricare immagini già su cloud.
-     */
-    private fun isRemoteUrl(path: String): Boolean {
-        return path.startsWith("https://") || path.startsWith("gs://")
-    }
 
     /**
      * Verifica che l'URI sia ancora accessibile dal ContentResolver.
@@ -139,6 +119,7 @@ class UploadWorker @AssistedInject constructor(
         return try {
             applicationContext.contentResolver.openInputStream(uri)?.use { true } ?: false
         } catch (e: Exception) {
+            logCaughtException(TAG, "URI locale non più accessibile (uri=$uri)", e)
             false
         }
     }

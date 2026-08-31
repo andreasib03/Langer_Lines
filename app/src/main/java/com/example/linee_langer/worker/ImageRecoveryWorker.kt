@@ -2,15 +2,16 @@ package com.example.linee_langer.worker
 
 import android.content.Context
 import android.os.Environment
-import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.data.local.AnalysisRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.io.File
 
+private const val TAG = "ImageRecoveryWorker"
 @HiltWorker
 class ImageRecoveryWorker @AssistedInject constructor(
     @Assisted context: Context,
@@ -29,7 +30,6 @@ class ImageRecoveryWorker @AssistedInject constructor(
             val langerDir = File(picturesDir, "LangerAnalysis")
 
             if (!langerDir.exists()) {
-                Log.d("ImageRecoveryWorker", "Cartella non trovata")
                 return Result.success()
             }
 
@@ -37,7 +37,6 @@ class ImageRecoveryWorker @AssistedInject constructor(
                 name.startsWith("Langer_") && name.endsWith(".webp")
             } ?: return Result.success()
 
-            Log.d("ImageRecoveryWorker", "Trovati ${files.size} file potenziali")
 
             val localAnalyses = repository.getAllAnalysesInternal()
             val analysesMap = localAnalyses.associateBy { it.date }
@@ -53,15 +52,14 @@ class ImageRecoveryWorker @AssistedInject constructor(
                     val match = analysesMap[timestamp]
 
                     if (match != null) {
-                        repository.updateImagePath(
+                        repository.updateImagePathByTimestamp(
                             timestamp,
                             file.absolutePath
                         )
 
-                        Log.d(
-                            "ImageRecoveryWorker",
-                            "Immagine recuperata per il record: $timestamp"
-                        )
+                        if (match.syncFailed){
+                            repository.updateSyncFailed(match.id, false)
+                        }
                     }
                 }
             }
@@ -69,13 +67,7 @@ class ImageRecoveryWorker @AssistedInject constructor(
             Result.success()
 
         } catch (e: Exception) {
-
-            Log.e(
-                "ImageRecoveryWorker",
-                "Errore nel recupero immagini",
-                e
-            )
-
+            logCaughtException(TAG, "Recupero percorsi immagine fallito", e)
             Result.failure()
         }
     }

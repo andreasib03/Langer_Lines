@@ -9,7 +9,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.print.PrintManager
 import android.util.Base64
-import android.util.Log
 import com.example.linee_langer.R
 import com.example.linee_langer.domain.models.UserFirebaseModel
 import java.io.ByteArrayOutputStream
@@ -19,7 +18,9 @@ import java.util.Locale
 import kotlin.collections.joinToString
 import androidx.core.net.toUri
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
+import com.example.linee_langer.core.utils.logCaughtException
 
+private const val TAG = "HelperProfile"
 fun exportDataAsPdf(
     context: Context,
     userData: UserFirebaseModel,
@@ -106,24 +107,24 @@ private fun generateDataHtml(
         </head>
         <body>
             <div class="header">
-                <h1>Report Analisi Langer</h1>
-                <p>Generato il ${sdf.format(Date())}</p>
+                <h1>$appName — $strReport</h1>
+                <p>$strGeneratedOn</p>
             </div>
             
             <div class="user-info">
-                <h3 style="margin-top: 0;">Dati Utente</h3>
-                <p><strong>Nome:</strong> ${userData.name}</p>
-                <p><strong>Email:</strong> ${userData.email}</p>
-                <p><strong>Tipo di Pelle:</strong> $skinType</p>
+                <h3 style="margin-top: 0;">$strUserData</h3>
+                <p><strong>$strName</strong> ${userData.name}</p>
+                <p><strong>$strEmail</strong> ${userData.email}</p>
+                <p><strong>$strSkinType</strong> $skinType</p>
             </div>
 
-            <h2>Storico Analisi con Immagini</h2>
+            <h2>$strHistory</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Data</th>
-                        <th style="text-align: center;">Anteprima</th>
-                        <th>Risultato</th>
+                        <th>$strDate</th>
+                        <th style="text-align: center;">$strPreview</th>
+                        <th>$strResult</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -169,6 +170,7 @@ private fun getResizedImageBase64(
 
         Base64.encodeToString(bytes, Base64.NO_WRAP)
     } catch (e: Exception) {
+        logCaughtException(TAG, "Generazione anteprima immagine per PDF fallita (path=$path)", e)
         null
     }
 }

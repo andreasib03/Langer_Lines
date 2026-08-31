@@ -32,7 +32,10 @@ fun SupportDialog(
         AlertDialog(
             onDismissRequest = onDismiss,
             title = {
-                Text(text = stringResource(R.string.problem), style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = stringResource(R.string.problem),
+                    style = MaterialTheme.typography.titleLarge
+                )
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Dimens.Medium)) {

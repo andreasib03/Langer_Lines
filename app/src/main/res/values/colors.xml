@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Brand — devono corrispondere a Skin500 e Skin300 in Color.kt -->
+    <color name="brand_primary">#F9A825</color>
+    <color name="brand_primary_dark">#FFCC80</color>
+
+    <!-- Sfondi di avvio — devono corrispondere a Neutral5 e Dark10 in Color.kt -->
+    <color name="background_light">#F8F9FA</color>
+    <color name="background_dark">#121212</color>
 </resources>

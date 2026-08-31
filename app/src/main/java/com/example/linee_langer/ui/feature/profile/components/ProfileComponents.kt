@@ -134,109 +134,109 @@ fun ProfileHeader(
 }
 
 
-    @Composable
-    fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-        Card(
-            modifier = modifier.fillMaxHeight(),
-            shape = RoundedCornerShape(Dimens.Standard),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                    alpha = 0.5f
-                )
+@Composable
+fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxHeight(),
+        shape = RoundedCornerShape(Dimens.Standard),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                alpha = 0.5f
             )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(Dimens.Standard),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(Dimens.Standard),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
 
             ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(Dimens.ExtraSmall))
+            Text(text = label, style = MaterialTheme.typography.labelMedium)
+        }
+    }
+}
+
+@Composable
+fun ProfileMenuItem(
+    title: String,
+    icon: Int,
+    showBadge: Boolean = false,
+    onClick: () -> Unit = {}) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Dimens.Medium))
+            .clickable { onClick() }
+            .padding(Dimens.Standard),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painterResource(icon),
+            contentDescription = "",
+            modifier = Modifier.size(Dimens.XLarge),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(Dimens.Standard))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
+        )
+        if (showBadge) {
+            Surface(
+                modifier = Modifier.size(Dimens.Small).padding(end = Dimens.ExtraSmall),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.error
+            ) {}
+        }
+
+        Icon(
+            painterResource(R.drawable.ic_back),
+            contentDescription = "",
+            modifier = Modifier.size(Dimens.Standard).rotate(180f),
+            tint = MaterialTheme.colorScheme.outlineVariant
+        )
+    }
+}
+
+@Composable
+fun MainActionCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimens.Standard),
+        shape = RoundedCornerShape(Dimens.XLarge),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier.padding(Dimens.XLarge),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = value,
+                    stringResource(R.string.new_scan),
+                    color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(Dimens.ExtraSmall))
-                Text(text = label, style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.analyze_new_lines), color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
             }
-        }
-    }
-
-    @Composable
-    fun ProfileMenuItem(
-        title: String,
-        icon: Int,
-        showBadge: Boolean = false,
-        onClick: () -> Unit = {}) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(Dimens.Medium))
-                .clickable { onClick() }
-                .padding(Dimens.Standard),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
             Icon(
-                painterResource(icon),
-                contentDescription = "",
-                modifier = Modifier.size(Dimens.XLarge),
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(Dimens.Standard))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
-            )
-            if (showBadge) {
-                Surface(
-                    modifier = Modifier.size(Dimens.Small).padding(end = Dimens.ExtraSmall),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.error
-                ) {}
-            }
-
-            Icon(
-                painterResource(R.drawable.ic_back),
-                contentDescription = "",
-                modifier = Modifier.size(Dimens.Standard).rotate(180f),
-                tint = MaterialTheme.colorScheme.outlineVariant
+                painter = painterResource(R.drawable.ic_camera),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(Dimens.XXLarge)
             )
         }
     }
-
-    @Composable
-    fun MainActionCard(onClick: () -> Unit) {
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = Dimens.Standard),
-            shape = RoundedCornerShape(Dimens.XLarge),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-            onClick = onClick
-        ) {
-            Row(
-                modifier = Modifier.padding(Dimens.XLarge),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.new_scan),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(stringResource(R.string.analyze_new_lines), color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
-                }
-                Icon(
-                    painter = painterResource(R.drawable.ic_camera),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(Dimens.XXLarge)
-                )
-            }
-        }
-    }
+}
 
 @Composable
 fun getSkinTypeDisplayName(skinTypeId: String?): String {
@@ -257,7 +257,7 @@ fun EditableUserInfoCard(
     isEmailEditable: Boolean,
     isEmailVerified: Boolean,
     onVerifyClick: () -> Unit,
-    onEmailChange: ((String) -> Unit)?
+    onEmailChange: ((newEmail: String, password: String) -> Unit)?
 ) {
 
 
@@ -271,10 +271,10 @@ fun EditableUserInfoCard(
     if (showConfirmDialog && isEmailEditable && onEmailChange != null) {
         ConfirmEmailChangeDialog(
             onDismiss = { showConfirmDialog = false },
-            onConfirm = {
+            onConfirm = { password ->
                 Toast.makeText(context, context.getString(R.string.changed_email), Toast.LENGTH_SHORT).show()
                 // Usiamo l'operatore safe call ?.invoke() perché onEmailChange può essere null
-                onEmailChange.invoke(tempEmail)
+                onEmailChange.invoke(tempEmail, password)
                 showConfirmDialog = false
             }
         )
@@ -373,11 +373,11 @@ fun EditableUserInfoCard(
 @Composable
 fun ConfirmEmailChangeDialog(
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: (String) -> Unit
 ) {
     var password by remember { mutableStateOf("") }
-    // Qui andrebbe la logica per verificare la password reale (es. dal ViewModel)
-    // Per ora simuliamo una verifica semplice o una lunghezza minima
+    // La validazione reale della password avviene lato server in fase di riautenticazione
+    // (vedi AuthRepository.reauthenticateWithPassword in ProfileViewModel.updateEmail).
     val isPasswordValid = password.length >= 6
 
     AlertDialog(
@@ -399,7 +399,7 @@ fun ConfirmEmailChangeDialog(
         },
         confirmButton = {
             Button(
-                onClick = onConfirm,
+                onClick = { onConfirm(password) },
                 enabled = isPasswordValid
             ) {
                 Text(stringResource(R.string.confirm))

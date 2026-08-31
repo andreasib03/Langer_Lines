@@ -17,12 +17,11 @@ object Dimens {
     val XMLarge = 26.dp
     val XXLarge     = 32.dp
     val Huge        = 48.dp
-    val MidHuge = 56.dp
     val SuperHuge   = 64.dp
 
     val ThumbnailSize = 72.dp
 
-    val Ottantotto = 88.dp
+    val LogoPlaceholderSize = 88.dp
     val IconXSmall  = 14.dp
     val IconSmall   = 18.dp
     val IconMedium  = 24.dp

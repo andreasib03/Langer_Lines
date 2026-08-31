@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import com.example.linee_langer.ui.feature.settings.SettingsViewModel
 import com.example.linee_langer.R
@@ -38,7 +39,11 @@ fun VersionFooter(version: String) {
         modifier = Modifier.fillMaxWidth().padding(top = Dimens.XXLarge, bottom = Dimens.Standard),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Versione $version", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = stringResource(R.string.version_label, version),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

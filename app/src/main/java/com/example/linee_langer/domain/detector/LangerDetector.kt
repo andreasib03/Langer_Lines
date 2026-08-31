@@ -2,6 +2,7 @@ package com.example.linee_langer.domain.detector
 
 import android.graphics.Bitmap
 import android.util.Log
+import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.domain.models.LangerLine
 import org.opencv.android.Utils
 import org.opencv.core.Core
@@ -17,7 +18,8 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-//math/openCV/ML logic
+
+private const val TAG = "LangerDetector"
 class LangerDetector : ILangerDetector {
 
     override var isAvailable: Boolean = false
@@ -36,7 +38,7 @@ class LangerDetector : ILangerDetector {
                 System.loadLibrary("opencv_java4")
                 libraryLoaded = true
             } catch (e: UnsatisfiedLinkError) {
-                Log.e("OpenCV", "${e.message}")
+                Log.w(TAG, "Libreria nativa OpenCV (opencv_java4) non disponibile su questo device: rilevamento linee disabilitato", e)
             }
         }
     }
@@ -47,26 +49,22 @@ class LangerDetector : ILangerDetector {
 
     private data class RegionPrior(val angleRad: Double, val anisotropy: Double)
 
+
     private val priors: Map<String, RegionPrior> = mapOf(
         // Face — primarily horizontal / slightly oblique
         "face"         to RegionPrior(Math.toRadians(0.0),   0.75),
         "forehead"     to RegionPrior(Math.toRadians(0.0),   0.75),
         "cheek"        to RegionPrior(Math.toRadians(30.0),  0.55),
-        "chin"         to RegionPrior(Math.toRadians(0.0),   0.60),
-        "neck"         to RegionPrior(Math.toRadians(0.0),   0.70),
         // Upper extremity — longitudinal along limb axis
-        "upper_arm"    to RegionPrior(Math.toRadians(90.0),  0.65),
-        "forearm"      to RegionPrior(Math.toRadians(90.0),  0.70),
-        "hand"         to RegionPrior(Math.toRadians(90.0),  0.50),
+        // NB: "arms"/"hands" qui DEVONO coincidere con i valori di BodyPartIds,
+        // altrimenti il fallback su UNKNOWN_PRIOR annulla la conoscenza anatomica.
+        "arms"         to RegionPrior(Math.toRadians(90.0),  0.67),
+        "hands"        to RegionPrior(Math.toRadians(90.0),  0.50),
         // Trunk
         "chest"        to RegionPrior(Math.toRadians(0.0),   0.65),
         "abdomen"      to RegionPrior(Math.toRadians(0.0),   0.60),
-        "back_upper"   to RegionPrior(Math.toRadians(10.0),  0.55),
-        "back_lower"   to RegionPrior(Math.toRadians(30.0),  0.60),
         // Lower extremity
-        "thigh"        to RegionPrior(Math.toRadians(90.0),  0.65),
-        "lower_leg"    to RegionPrior(Math.toRadians(90.0),  0.70),
-        "foot"         to RegionPrior(Math.toRadians(0.0),   0.50)
+        "legs"         to RegionPrior(Math.toRadians(90.0),  0.67)
     )
 
     /**
@@ -80,7 +78,6 @@ class LangerDetector : ILangerDetector {
     ): List <LangerLine> {
 
         if (!isAvailable) {
-            Log.w("LangerDetector", "Analisi annullata: OpenCV non disponibile sul device.")
             return emptyList()
         }
 
@@ -147,10 +144,9 @@ class LangerDetector : ILangerDetector {
                 sensitivity, partId.lowercase()
             )
         } catch (e: Exception) {
-            Log.e("LangerDetector", "Error during line detection: ${e.message}")
+            logCaughtException(TAG, "Rilevamento linee di Langer fallito (partId=$partId)", e)
             return emptyList()
         } finally {
-            // Rilascio critico di tutte le risorse native
             listOf(mat, hsv, skinMask, gray, gradX, gradY, jxx, jxy, jyy, morphKernel).forEach {
                 if (!it.empty()) it.release()
             }

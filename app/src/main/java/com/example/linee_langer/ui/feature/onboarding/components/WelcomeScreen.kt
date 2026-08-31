@@ -2,6 +2,7 @@ package com.example.linee_langer.ui.feature.onboarding.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +52,15 @@ fun WelcomeScreen(
         // ── ZONA HERO ────────────────────────────────────────────────────────
         // Gradiente verticale brand (Skin200 → Skin500) che occupa il 58% dello
         // schermo. Dà identità visiva immediata senza richiedere un'immagine.
+        //
+        // NOTA: Skin200/Skin500 sono presi direttamente dalla palette (non da
+        // MaterialTheme.colorScheme) DELIBERATAMENTE — è l'identità di brand della
+        // schermata di benvenuto e resta invariata in dark mode, come primo colore
+        // del gradiente (MaterialTheme.colorScheme.surface) resta comunque theme-aware
+        // per garantire un blend morbido con lo sfondo. Se in futuro si vuole un
+        // gradiente completamente theme-aware, va introdotto un semantic color
+        // dedicato in AppColors (es. `heroGradientStart/End`) invece di riusare
+        // Skin200/Skin500 fuori contesto.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -68,23 +79,24 @@ fun WelcomeScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(Dimens.Large)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Dimens.Large)
             ) {
-                // Logo placeholder — sostituire con ic_logo dedicato
                 Surface(
-                    modifier = Modifier.size(Dimens.Ottantotto),
+                    modifier = Modifier.size(Dimens.LogoPlaceholderSize),
                     shape = RoundedCornerShape(Dimens.RadiusXLarge),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     tonalElevation = Dimens.ExtraSmall
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_settings),
-                            contentDescription = "",
-                            modifier = Modifier.size(Dimens.IconLarge),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                    Image(
+                        painter = painterResource(R.drawable.logo_langer),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(Dimens.RadiusXLarge)),
+                        contentScale = ContentScale.Crop
+                    )
                 }
 
                 Spacer(Modifier.height(Dimens.XLarge))
@@ -104,7 +116,7 @@ fun WelcomeScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = Dimens.Large)
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }

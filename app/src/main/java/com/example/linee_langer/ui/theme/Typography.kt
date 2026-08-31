@@ -98,3 +98,10 @@ val AppTypography = Typography(
         letterSpacing = 0.5.sp,
     ),
 )
+
+val BadgeCountTextStyle = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.Bold,
+    fontSize   = 10.sp,
+    lineHeight = 12.sp,
+)

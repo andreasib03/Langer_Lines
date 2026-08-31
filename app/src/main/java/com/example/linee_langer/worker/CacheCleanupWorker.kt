@@ -1,18 +1,20 @@
 package com.example.linee_langer.worker
 
 import android.content.Context
-import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.linee_langer.core.utils.logCaughtException
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
+private const val TAG = "CacheCleanupWorker"
 @HiltWorker
 class CacheCleanupWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters
 ) : CoroutineWorker(context, params) {
+
     override suspend fun doWork(): Result {
         return try {
             val cacheDir = applicationContext.cacheDir
@@ -35,10 +37,9 @@ class CacheCleanupWorker @AssistedInject constructor(
                 }
             }
 
-            Log.d("CacheWorker", "Pulizia completata: rimossi $deletedCount file")
             Result.success()
         } catch (e: Exception) {
-            Log.e("CacheWorker", "Errore durante la pulizia", e)
+            logCaughtException(TAG, "Pulizia cache temporanea fallita", e)
             Result.failure()
         }
     }

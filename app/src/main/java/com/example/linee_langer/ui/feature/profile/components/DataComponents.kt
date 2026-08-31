@@ -41,7 +41,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import com.example.linee_langer.R
 import androidx.core.net.toUri
 import com.example.linee_langer.ui.feature.profile.ProfileViewModel
@@ -151,41 +150,41 @@ fun ConfirmDeleteAllChangeDialog(
                 }
             },
             confirmButton = {
-                    // Verifica password
-                    Button(
-                        onClick = {
-                            if(!isGoogleUser){
-                                profileViewModel.verifyPasswordOnly(
-                                    password = password,
-                                    onSuccess = { isIdentityVerified = true },
-                                    onError = { msg -> errorMessage = msg }
-                                )
-                            }  else {
-                                profileViewModel.verifyGoogleOnly(
-                                    context = context,
-                                    onSuccess = { isIdentityVerified = true },
-                                    onError = { msg -> errorMessage = msg}
-                                )
-                            }
-
-                        },
-                        enabled = (!isGoogleUser && password.length >= 6 || isGoogleUser) && !isLoading
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(Dimens.IconMedium),
-                                strokeWidth = Dimens.BorderThin,
-                                color = MaterialTheme.colorScheme.onPrimary
+                // Verifica password
+                Button(
+                    onClick = {
+                        if(!isGoogleUser){
+                            profileViewModel.verifyPasswordOnly(
+                                password = password,
+                                onSuccess = { isIdentityVerified = true },
+                                onError = { msg -> errorMessage = msg }
                             )
-                        } else {
-                            Text(
-                                if (isGoogleUser)
-                                    stringResource(R.string.delete_account_confirm_google)
-                                else
-                                    stringResource(R.string.verify)
+                        }  else {
+                            profileViewModel.verifyGoogleOnly(
+                                context = context,
+                                onSuccess = { isIdentityVerified = true },
+                                onError = { msg -> errorMessage = msg}
                             )
                         }
+
+                    },
+                    enabled = (!isGoogleUser && password.length >= 6 || isGoogleUser) && !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(Dimens.IconMedium),
+                            strokeWidth = Dimens.BorderThin,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text(
+                            if (isGoogleUser)
+                                stringResource(R.string.delete_account_confirm_google)
+                            else
+                                stringResource(R.string.verify)
+                        )
                     }
+                }
 
             },
             dismissButton = {
@@ -274,6 +273,25 @@ fun SettingsRow(
 
 @Composable
 fun PrivacyPolicyCard(){
+    var showPriorityDialog by remember { mutableStateOf(false) }
+    var showAdvertisationDialog by remember { mutableStateOf(false) }
+
+    if (showPriorityDialog) {
+        InfoDetailDialog(
+            title = stringResource(R.string.priority),
+            text = stringResource(R.string.priority_content),
+            onDismiss = { showPriorityDialog = false }
+        )
+    }
+
+    if (showAdvertisationDialog) {
+        InfoDetailDialog(
+            title = stringResource(R.string.advertisation),
+            text = stringResource(R.string.advertisation_content),
+            onDismiss = { showAdvertisationDialog = false }
+        )
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(Dimens.Large),
@@ -285,7 +303,8 @@ fun PrivacyPolicyCard(){
         Column(
             modifier = Modifier.padding(Dimens.Large),
             horizontalAlignment = Alignment.CenterHorizontally
-        ) { // Security Icon
+        ) {
+            // Security Icon — centrata
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primary,
@@ -301,26 +320,38 @@ fun PrivacyPolicyCard(){
 
             Spacer(modifier = Modifier.height(Dimens.Standard))
 
-            Text(
-                text = stringResource(R.string.priority),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
+            // Priority (sinistra) e Advertisation (destra)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = stringResource(R.string.priority),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { showPriorityDialog = true }
+                )
 
-            Spacer(modifier = Modifier.height(Dimens.Small))
+                Spacer(modifier = Modifier.width(Dimens.Standard))
 
-            Text(
-                text = stringResource(R.string.advertisation),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                lineHeight = 20.sp
-            )
+                Text(
+                    text = stringResource(R.string.advertisation),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { showAdvertisationDialog = true }
+                )
+            }
 
             Spacer(modifier = Modifier.height(Dimens.Standard))
 
-            // Botton for details
+            // Bottone per i dettagli — centrato
             val context = LocalContext.current
             val privacyUrl = "https://andreasib03.github.io/Langer_Lines/"
             TextButton(
@@ -329,11 +360,33 @@ fun PrivacyPolicyCard(){
                     context.startActivity(intent)
                 }
             ) {
-            Text(
+                Text(
                     stringResource(R.string.complete_privacy),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
-            }}
+            }
+        }
     }
+}
+
+/** Dialog generico per mostrare il contenuto esteso di una voce della PrivacyPolicyCard. */
+@Composable
+private fun InfoDetailDialog(
+    title: String,
+    text: String,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = title, fontWeight = FontWeight.Bold) },
+        text = { Text(text = text) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.understand))
+            }
+        },
+        shape = RoundedCornerShape(Dimens.XLarge),
+        containerColor = MaterialTheme.colorScheme.surface
+    )
 }

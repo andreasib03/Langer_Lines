@@ -3,11 +3,12 @@ package com.example.linee_langer.ui.shared.utils
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.core.net.toUri
 import com.example.linee_langer.R
+import com.example.linee_langer.core.utils.logCaughtException
 
+private const val TAG = "HelperSendEmails"
 fun launchSupportEmail(
     context: Context,
     userSubject: String,
@@ -36,6 +37,7 @@ fun launchSupportEmail(
     try {
         context.startActivity(intent)
     } catch (e: Exception) {
+        logCaughtException(TAG, "Avvio client email di supporto fallito (nessuna app compatibile con mailto:)", e)
         Toast.makeText(context, context.getString(R.string.error_no_email_client), Toast.LENGTH_SHORT).show()
     }
 }

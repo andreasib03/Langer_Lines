@@ -17,7 +17,8 @@ data class SkinAnalysisEntity(
     val bodyPartId: String,
     val imagePath: String,
     val resultSummary: String,
-    val isSynced: Boolean = false
+    val isSynced: Boolean = false,
+    val syncFailed: Boolean = false
 )
 
 

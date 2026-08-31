@@ -2,7 +2,6 @@ package com.example.linee_langer.ui.shared.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,28 +9,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawOutline
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomSheetDefaults
@@ -53,6 +41,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,118 +51,11 @@ import com.example.linee_langer.ui.theme.CameraOverlayBg
 import com.example.linee_langer.ui.theme.CameraOverlayText
 import com.example.linee_langer.ui.theme.appColors
 import com.example.linee_langer.ui.feature.notifications.NotificationViewModel
+import com.example.linee_langer.ui.navigation.LocalNavController
+import com.example.linee_langer.ui.theme.BadgeCountTextStyle
 import com.example.linee_langer.ui.theme.Dimens
 
 
-fun Modifier.slothShadow(
-    color: Color = Color(0x33000000),
-    offsetX: Dp = Dimens.ExtraSmall,
-    offsetY: Dp = Dimens.ExtraSmall,
-    shape: Shape
-) = this.drawBehind {
-    drawIntoCanvas { canvas ->
-    val paint = Paint()
-    paint.color = color
-
-    canvas.drawOutline(
-        outline = shape.createOutline(
-            size = size,
-            layoutDirection = layoutDirection,
-            density = this
-        ),
-        paint = paint
-    )
-}
-}.offset(x = -offsetX, y = -offsetY)
-
-@Composable
-fun CardChoice(
-    title: String,
-    subtitle: String,
-    description: String,
-    icon: Int,
-    isSelected: Boolean,
-    onSelect: () -> Unit
-){
-
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
-    val borderColor = MaterialTheme.colorScheme.outline
-    val cornerRadius = Dimens.RadiusStandard
-    val shape = RoundedCornerShape(cornerRadius)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(Dimens.Small)
-            .then(if (isSelected) Modifier.slothShadow(shape = shape) else Modifier)
-            .background(backgroundColor, shape)
-            .border(Dimens.CardElevation, borderColor, shape)
-            .clickable { onSelect() }
-            .padding(Dimens.Standard)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Dimens.Standard)
-        ) {
-            // Icon Container
-            Box(
-                modifier = Modifier
-                    .size(Dimens.Huge)
-                    .background(MaterialTheme.colorScheme.onSurface, RoundedCornerShape(Dimens.Medium)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = icon),
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier.size(Dimens.XLarge)
-                )
-            }
-
-            // Text Content
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-                Text(
-                    text = subtitle,
-                    style = TextStyle(
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-                Text(
-                    text = description,
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-            }
-
-            // Custom Selection Circle
-            Box(
-                modifier = Modifier
-                    .size(Dimens.XLarge)
-                    .border(Dimens.CardElevation, MaterialTheme.colorScheme.onSurface, CircleShape)
-                    .padding(Dimens.ExtraSmall)
-            ) {
-                if (isSelected) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.onSurface, CircleShape)
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun OpenCvUnavailableBanner(modifier: Modifier = Modifier) {
@@ -210,51 +92,6 @@ fun OpenCvUnavailableBanner(modifier: Modifier = Modifier) {
                 )
             }
         }
-    }
-}
-
-@Composable
-fun StyledTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    placeholder: String = "",
-    isError: Boolean = false,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    readOnly: Boolean = false,
-    trailingIcon: @Composable (() -> Unit)? = null,
-
-) {
-    Column(modifier = Modifier.fillMaxWidth().padding(vertical = Dimens.Small)) {
-        // Subtle Label above the field
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = Dimens.ExtraSmall, bottom = Dimens.ExtraSmall)
-        )
-
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = Dimens.MidHuge),
-            // CUSTOM STYLING START
-            shape = RoundedCornerShape(Dimens.Standard), // Modern rounded corners
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = Color.Transparent, // No border when not typing for a cleaner look
-                errorBorderColor = MaterialTheme.colorScheme.error
-            ),
-            isError = isError,
-            keyboardOptions = keyboardOptions,
-            singleLine = true
-            // CUSTOM STYLING END
-        )
     }
 }
 
@@ -300,12 +137,8 @@ fun LangerTopAppBar(
                             ) {
                                 // Se sono troppe (es. > 9), puoi mostrare "9+"
                                 Text(
-                                    text = if (unreadCount > 9) "9+" else unreadCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 10.sp, // Forza una dimensione piccola
-                                        fontWeight = FontWeight.Bold,
-                                        lineHeight = 12.sp // Evita che il testo venga tagliato verticalmente
-                                    ),
+                                    text = if (unreadCount > 9) stringResource(R.string.notification_count_overflow) else unreadCount.toString(),
+                                    style = BadgeCountTextStyle,
                                     modifier = Modifier.padding(horizontal = Dimens.BorderStandard)
                                 )
                             }
@@ -409,13 +242,14 @@ fun LangerScaffold(
     snackbarHostState: SnackbarHostState? = null,
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
-,
+    ,
 ) {
     val sheetState = rememberModalBottomSheetState()
     val notifications by notificationViewModel.notifications.collectAsState()
     val hasUnread by notificationViewModel.hasUnread.collectAsState()
     var showBottomSheet by remember{ mutableStateOf(false) }
     val unreadCount by notificationViewModel.unreadCount.collectAsState()
+    val navController = LocalNavController.current
 
 
     if(showBottomSheet){
@@ -430,7 +264,16 @@ fun LangerScaffold(
         ) {
             NotificationItems(
                 notifications = notifications,
-                onDelete = {notification -> notificationViewModel.deleteNotification(notification)}
+                onDelete = {notification -> notificationViewModel.deleteNotification(notification)},
+                onItemClick = { notification ->
+                    notificationViewModel.onNotificationClicked(notification)
+                    if (!notification.targetRoute.isNullOrBlank()) {
+                        navController.navigate(notification.targetRoute) {
+                            launchSingleTop = true
+                        }
+                        showBottomSheet = false
+                    }
+                }
             )
         }
     }
@@ -457,7 +300,11 @@ fun LangerScaffold(
 }
 
 @Composable
-private fun NotificationItems(notifications: List<NotificationItem>, onDelete: (NotificationItem) -> Unit){
+private fun NotificationItems(
+    notifications: List<NotificationItem>,
+    onDelete: (NotificationItem) -> Unit,
+    onItemClick: (NotificationItem) -> Unit
+){
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -517,7 +364,7 @@ private fun NotificationItems(notifications: List<NotificationItem>, onDelete: (
                     ) {
                         // Content della card
                         Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
-                            NotificationCard(notification)
+                            NotificationCard(notification, onClick = { onItemClick(notification) })
                         }
                     }
 
@@ -534,10 +381,14 @@ private fun NotificationItems(notifications: List<NotificationItem>, onDelete: (
 }
 
 @Composable
-private fun NotificationCard(notification: NotificationItem){
+private fun NotificationCard(notification: NotificationItem, onClick: () -> Unit){
+    val isClickable = !notification.targetRoute.isNullOrBlank()
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .then(
+                if (isClickable) Modifier.clickable(onClick = onClick) else Modifier
+            )
             .padding(Dimens.Standard),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -572,6 +423,17 @@ private fun NotificationCard(notification: NotificationItem){
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        if (isClickable) {
+            Spacer(modifier = Modifier.width(Dimens.Small))
+            Icon(
+                painter = painterResource(R.drawable.ic_back),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .size(Dimens.IconSmall)
+                    .graphicsLayer { rotationZ = 180f }
+            )
+        }
     }
 }
-

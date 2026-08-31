@@ -10,5 +10,7 @@ data class NotificationItem(
     val title: String,
     val description: String,
     val timestamp: String,
-    val isRead: Boolean = false
+    val isRead: Boolean = false,
+    val targetRoute: String? = null,
+    val insertedAtMs: Long = System.currentTimeMillis()
 )

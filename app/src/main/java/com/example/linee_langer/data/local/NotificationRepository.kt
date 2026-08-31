@@ -14,19 +14,32 @@ class NotificationRepository @Inject constructor(
 
     val allNotifications: Flow<List<NotificationItem>> = dao.getAllNotifications()
 
-    suspend fun addNotification(title: String, description: String) {
+    suspend fun addNotification(title: String, description: String, targetRoute: String? = null) {
         val timestamp = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
         dao.insertNotification(
             NotificationItem(
                 title = title,
                 description = description,
                 timestamp = timestamp,
+                targetRoute = targetRoute
             )
         )
+    }
+
+    suspend fun hasRecentReminderNotification(
+        windowMs: Long,
+        title: String
+    ): Boolean {
+        val sinceMs = System.currentTimeMillis() - windowMs
+        return dao.hasRecentNotificationWithTitle(sinceMs = sinceMs, reminderTitle = title)
     }
 
 
     suspend fun markAllAsRead() = dao.markAllAsRead()
 
+    suspend fun markAsRead(id: Int) = dao.markAsRead(id)
+
     suspend fun deleteNotification(id: Int) = dao.deleteNotificationById(id)
+
+    suspend fun deleteAllNotifications() = dao.deleteAllNotification()
 }

@@ -1,0 +1,111 @@
+[versions]
+agp = "8.9.1"
+leakcanaryAndroid = "2.14"
+versionKotlin = "2.0.21"
+coreKtx = "1.18.0"
+junit = "4.13.2"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+appcompat = "1.7.1"
+material = "1.13.0"
+materiall = "1.10.6"
+material3 = "1.4.0"
+activity = "1.13.0"
+constraintlayout = "2.2.1"
+glideRef = '5.0.7'
+mediapipeRef = '0.10.20'
+cameraRef = '1.7.0-alpha01'
+photoview = '2.3.0'
+room = '2.6.1'
+navigation = '2.9.7'
+lifecycle = '2.10.0'
+coroutines = '1.10.2'
+datastore = '1.2.1'
+datastore_version = '1.2.1'
+ui = '1.10.6'
+coil = "2.7.0"
+runtime = "1.11.1"
+material3WindowSizeClass = "1.4.0"
+foundation = "1.11.1"
+cameraView = "1.6.0"
+graphic = "1.0.4"
+versionKsp = "2.0.21-1.0.25"
+versionGoogle = "4.4.1"
+
+hilt = "2.52"
+androidHilt = "1.3.0"
+hiltCommon = "1.3.0"
+foundationLayoutVersion = "1.11.1"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+glide = { group = 'com.github.bumptech.glide', name = 'glide', version.ref = 'glideRef'}
+mediapipe = { group = 'com.google.mediapipe', name = 'solution-core', version.ref = 'mediapipeRef'}
+camerax = { group = 'androidx.camera', name = 'camera-core', version.ref = 'cameraRef'}
+camera2 = { group = 'androidx.camera', name = 'camera-camera2', version.ref = 'cameraRef'}
+cameralifecycle = {group = 'androidx.camera', name = 'camera-lifecycle', version.ref = 'cameraRef'}
+photoview = { group = 'com.github.chrisbanes', name = 'PhotoView', version.ref = 'photoview'}
+room-runtime = { group = 'androidx.room', name = 'room-runtime', version.ref = 'room'}
+room-ktx = { group = 'androidx.room', name = 'room-ktx', version.ref = 'room'}
+room-compiler = { group = 'androidx.room', name = 'room-compiler', version.ref = 'room'}
+navigation-fragment = { group = 'androidx.navigation', name = 'navigation-fragment-ktx', version.ref = 'navigation'}
+navigation-compose = { group = 'androidx.navigation', name = 'navigation-compose', version.ref = 'navigation'}
+navigation-ui = { group = 'androidx.navigation', name = 'navigation-ui-ktx', version.ref = 'navigation'}
+compose-material3 = { group = 'androidx.compose.material3', name = 'material3', version.ref = 'material3'}
+compose-material = { group = 'androidx.compose.material', name = 'material', version.ref = 'materiall'}
+compose-ui = { group = 'androidx.compose.ui', name = 'ui', version.ref = 'ui'}
+lifecycle-viewmodel = { group = 'androidx.lifecycle', name = 'lifecycle-viewmodel-ktx', version.ref = 'lifecycle'}
+lifecycle-livedata = { group = 'androidx.lifecycle', name = 'lifecycle-livedata-ktx', version.ref = 'lifecycle'}
+lifecycle-runtime = { group = 'androidx.lifecycle', name = 'lifecycle-runtime-ktx', version.ref = 'lifecycle'}
+coroutines-core = { group = 'org.jetbrains.kotlinx', name = 'kotlinx-coroutines-core', version.ref = 'coroutines'}
+coroutines-android = { group = 'org.jetbrains.kotlinx', name = 'kotlinx-coroutines-android', version.ref = 'coroutines'}
+androidx-datastore = { group = "androidx.datastore", name = "datastore-preferences-rxjava2", version.ref = "datastore"}
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore_version"}
+coil = {group = "io.coil-kt", name = "coil-compose", version.ref = "coil"}
+androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+androidx-graphics = { group = "androidx.graphics", name = "graphics-core", version.ref = "graphic"}
+androidx-material3-window-size-class1 = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3WindowSizeClass" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraView" }
+hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+androidx-hilt = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidHilt" }
+lottie = { group = "com.airbnb.android", name = "lottie-compose", version = "6.7.1"}
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "33.1.0"}
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore"}
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage"}
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth"}
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
+gms = { group = "com.google.android.gms", name = "play-services-auth", version = "21.2.0"}
+credentials = { group = "androidx.credentials", name = "credentials", version = "1.2.2"}
+credentials-services = { group = "androidx.credentials", name = "credentials-play-services-auth", version = "1.2.2"}
+identity-google = {group = "com.google.android.libraries.identity.googleid", name = "googleid", version = "1.1.1"}
+crop = {group = "com.github.yalantis", name = "ucrop", version = "2.2.8"}
+work = { group = "androidx.work", name = "work-runtime-ktx", version = "2.9.0"}
+androidx-hilt-common = { group = "androidx.hilt", name = "hilt-common", version.ref = "hiltCommon" }
+androidx-hilt-work = {group = "androidx.hilt", name = "hilt-work", version = "1.2.0"}
+kotlinx-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.7.3" }
+androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version = "1.2.0" }
+foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayoutVersion" }
+browser = { group = "androidx.browser", name = "browser", version = "1.8.0"}
+crashlytics = {group = "com.google.firebase", name = "firebase-crashlytics"}
+analytics = {group = "com.google.firebase", name = "firebase-analytics"}
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "versionKsp"}
+compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "versionKotlin" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt"}
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "versionKotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "versionGoogle"}
+kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "versionKotlin"}
+crashlytics-plugin = {id = "com.google.firebase.crashlytics"}
+detekt = {id = "io.gitlab.arturbosch.detekt", version = "1.23.5"}

@@ -16,30 +16,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.MaterialTheme.typography
 
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import com.example.linee_langer.R
 import com.example.linee_langer.ui.shared.components.LangerScaffold
 import com.example.linee_langer.ui.feature.notifications.NotificationViewModel
@@ -50,8 +38,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.example.linee_langer.core.database.entity.AnalysisWithLines
-import com.example.linee_langer.core.utils.toContainerColor
 import com.example.linee_langer.ui.feature.home.components.AdviceCategoryCard
 import com.example.linee_langer.ui.feature.home.components.AdviceHeader
 import com.example.linee_langer.ui.feature.profile.components.ConfirmDeleteAllChangeDialog
@@ -67,11 +53,7 @@ import com.example.linee_langer.ui.feature.profile.components.ProfileMenuItem
 import com.example.linee_langer.ui.feature.profile.components.StatCard
 import com.example.linee_langer.ui.feature.profile.components.getSkinTypeDisplayName
 import com.example.linee_langer.ui.shared.utils.restartApp
-import com.example.linee_langer.core.utils.toDateString
-import com.example.linee_langer.core.utils.toStringRes
-import com.example.linee_langer.domain.models.TensionLevel
 import com.example.linee_langer.ui.theme.Dimens
-import com.example.linee_langer.ui.theme.appColors
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 import java.io.File
@@ -113,7 +95,7 @@ fun ProfileScreen(
     ) { uri ->
         uri?.let { sourceUri ->
             val destinationFile =
-                File(context.cacheDir, "profile_${System.currentTimeMillis()}.jpg")
+                File(context.filesDir, "profile_${System.currentTimeMillis()}.jpg")
             val destinationUri = Uri.fromFile(destinationFile)
 
             val uCrop = UCrop.of(sourceUri, destinationUri)
@@ -141,7 +123,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(colorScheme.surface),
+                .background(colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item {
@@ -235,83 +217,6 @@ fun ProfileScreen(
 
 
 @Composable
-fun AnalysisInfoPanel(data: AnalysisWithLines) {
-
-    val tensionLevel = remember(data.lines){
-        TensionLevel.fromLines(data.lines)
-    }
-    val tensionText = stringResource(tensionLevel.toStringRes())
-    val tensionColor = tensionLevel.toContainerColor(
-        colorScheme,
-        MaterialTheme.appColors
-    )
-
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(Dimens.XLarge)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column {
-                Text(
-                    text = data.analysis.bodyPartId.uppercase(),
-                    style = typography.labelLarge,
-                    color = colorScheme.primary
-                )
-                Text(
-                    text = data.analysis.date.toDateString(),
-                    style = typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onPrimary
-                )
-            }
-
-            // Badge intensity media
-            Surface(
-                color = tensionColor.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(Dimens.RadiusMedium)
-            ) {
-                Text(
-                    text = tensionText,
-                    modifier = Modifier.padding(horizontal = Dimens.Medium, Dimens.ExtraSmall),
-                    style = typography.labelMedium,
-                    color = tensionColor
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(Dimens.Large))
-
-        // Card dei dynamic advice
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = colorScheme.onPrimary.copy(alpha = 0.1f)),
-            shape = RoundedCornerShape(Dimens.Standard)
-        ) {
-            Row(modifier = Modifier.padding(Dimens.Standard), verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_star),
-                    contentDescription = "",
-                    tint = MaterialTheme.appColors.starColor,
-                    modifier = Modifier.size(Dimens.XLarge)
-                )
-                Spacer(modifier = Modifier.width(Dimens.Medium))
-                Text(
-                    text = stringResource(R.string.analyis_info),
-                    color = colorScheme.onPrimary.copy(alpha = 0.8f),
-                    style = typography.bodyMedium
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun DataScreen(
     profileViewModel: ProfileViewModel,
     notificationViewModel: NotificationViewModel,
@@ -365,69 +270,84 @@ fun DataScreen(
                 )
             }
         } else {
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .background(colorScheme.surface),
-            contentPadding = PaddingValues(Dimens.Standard),
-            verticalArrangement = Arrangement.spacedBy(Dimens.Standard)
-        ) {
-            item {
-            DataHeaderSection()
-        }
-            item {
-                val profileImage = stringResource(R.string.profile_image_updated)
-                val profileNoImage = stringResource(R.string.profile_image_no_updated)
-                EditableUserInfoCard(
-                    context = context,
-                    name = currentProfile.name,
-                    email = currentProfile.email,
-                    skinType = getSkinTypeDisplayName(currentProfile.skinType),
-                    isEmailEditable = !isGoogleUser,
-                    isEmailVerified = isVerified,
-                    onVerifyClick = {
-                        profileViewModel.sendVerification { success ->
-                            if (success) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = profileImage,
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }
-                            } else {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = profileNoImage,
-                                        duration = SnackbarDuration.Short
-                                    )
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .background(colorScheme.surface),
+                contentPadding = PaddingValues(Dimens.Standard),
+                verticalArrangement = Arrangement.spacedBy(Dimens.Standard)
+            ) {
+                item {
+                    DataHeaderSection()
+                }
+                item {
+                    val profileImage = stringResource(R.string.profile_image_updated)
+                    val profileNoImage = stringResource(R.string.profile_image_no_updated)
+                    val emailChangeFailedMessage = stringResource(R.string.error_wrong_password)
+                    EditableUserInfoCard(
+                        context = context,
+                        name = currentProfile.name,
+                        email = currentProfile.email,
+                        skinType = getSkinTypeDisplayName(currentProfile.skinType),
+                        isEmailEditable = !isGoogleUser,
+                        isEmailVerified = isVerified,
+                        onVerifyClick = {
+                            profileViewModel.sendVerification { success ->
+                                if (success) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = profileImage,
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                } else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = profileNoImage,
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
+                        },
+                    ) { newEmail, password ->
+                        profileViewModel.updateEmail(
+                            newEmail = newEmail,
+                            password = password,
+                            onResult = { success ->
+                                if (!success) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = emailChangeFailedMessage,
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+
+                item {
+                    val skinTypeDisplayName = getSkinTypeDisplayName(currentProfile.skinType)
+                    DataManagementCard(
+                        onExportData = {
+                            if(!profileViewModel.isExporting){
+                                profileViewModel.generateReport(context, currentProfile, history, skinTypeDisplayName)
+                            }
+                        },
+                        onDeleteAll = {
+                            showDeleteDialog = true
+
                         }
-                    },
-                ) {
-                    profileViewModel.updateEmail(it)
+                    )
+                }
+
+                item {
+                    PrivacyPolicyCard()
                 }
             }
-
-            item {
-                DataManagementCard(
-                    onExportData = {
-                        if(!profileViewModel.isExporting){
-                            profileViewModel.generateReport(context, currentProfile, history, currentProfile.skinType)
-                        }
-                    },
-                    onDeleteAll = {
-                        showDeleteDialog = true
-
-                    }
-                )
-            }
-
-            item {
-                PrivacyPolicyCard()
-            }
         }
-    }
     }
 }
 

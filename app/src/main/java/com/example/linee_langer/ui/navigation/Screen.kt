@@ -38,6 +38,8 @@ sealed class Screen (
     object Camera : Screen ("camera", "Camera", 0)
 
     object Tutorial : Screen("tutorial", "Tutorial")
+
+    object Faq : Screen("faq", "FAQ")
 }
 
 val BottomNavigationItems = listOf(

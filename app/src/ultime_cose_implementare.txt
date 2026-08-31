@@ -1,0 +1,3 @@
+COSE DA IMPLEMENTARE A FINE TUTTO
+- togliere tutto quello che è hardcored
+- quando finiscono tutte le stringhe generare poi i file strings per inglese, spagnolo e magari un'altra lingua

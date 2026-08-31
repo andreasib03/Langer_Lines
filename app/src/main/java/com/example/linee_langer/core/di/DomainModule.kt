@@ -1,6 +1,7 @@
 package com.example.linee_langer.core.di
 
 import com.example.linee_langer.data.local.AnalysisRepository
+import com.example.linee_langer.data.local.NotificationRepository
 import com.example.linee_langer.data.local.UserPreferencesManager
 import com.example.linee_langer.data.remote.AuthRepository
 import com.example.linee_langer.data.remote.FirebaseRepository
@@ -36,8 +37,9 @@ object DomainModule {
         authRepository: AuthRepository,
         analysisRepository: AnalysisRepository,
         userPreferencesManager: UserPreferencesManager,
-        firebaseRepository: FirebaseRepository
+        firebaseRepository: FirebaseRepository,
+        notificationRepository: NotificationRepository
     ): UserUseCase {
-        return UserUseCase(authRepository, analysisRepository, firebaseRepository, userPreferencesManager)
+        return UserUseCase(authRepository, analysisRepository, firebaseRepository, userPreferencesManager, notificationRepository)
     }
 }

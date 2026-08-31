@@ -23,4 +23,24 @@ object MigrationDatabases {
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_LangerLineEntity_analysisId` ON `LangerLineEntity` (`analysisId`)")
         }
     }
+
+    val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `notifications` ADD COLUMN `targetRoute` TEXT DEFAULT NULL")
+        }
+    }
+
+    val MIGRATION_7_8 = object : Migration(7, 8) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `notifications` ADD COLUMN `insertedAtMs` INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
+    val MIGRATION_8_9 = object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `skin_analyses` ADD COLUMN `syncFailed` INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
+
 }

@@ -26,7 +26,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import com.example.linee_langer.ui.theme.Dimens
 
 @Composable
@@ -77,8 +76,7 @@ fun AdviceCategoryCard(
                 Spacer(modifier = Modifier.height(Dimens.ExtraSmall))
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 20.sp
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }

@@ -1,5 +1,6 @@
 package com.example.linee_langer.data.remote
 
+import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.domain.exceptions.AppException
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
@@ -12,6 +13,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+
+private const val TAG = "AuthRepository"
 
 class AuthRepository @Inject constructor(
     private val auth: FirebaseAuth,
@@ -48,14 +51,13 @@ class AuthRepository @Inject constructor(
                 false
             }
         } catch (e: Exception) {
+            logCaughtException(TAG, "Invio email di verifica fallito", e)
             false
         }
     }
 
 
     suspend fun userProfileExists(uid: String): Boolean = firebaseRepository.checkIfUserProfileExists(uid)
-
-
 
     suspend fun signUpWithEmail(email: String, password: String): Result<Unit> {
         return try {
@@ -65,6 +67,7 @@ class AuthRepository @Inject constructor(
         } catch (e: FirebaseAuthUserCollisionException) {
             Result.failure(AppException.Authentication.EmailAlreadyExists("unknown"))
         } catch (e: Exception){
+            logCaughtException(TAG, "Registrazione con email fallita", e)
             Result.failure(e)
         }
     }
@@ -86,6 +89,7 @@ class AuthRepository @Inject constructor(
         } catch (e: FirebaseAuthUserCollisionException){
             Result.failure(AppException.Authentication.EmailAlreadyExists("google.com"))
         } catch (e: Exception){
+            logCaughtException(TAG, "Login con email fallito", e)
             Result.failure(e)
         }
 
@@ -107,6 +111,7 @@ class AuthRepository @Inject constructor(
                 e.message?.contains("ERROR_ACCOUNT_EXISTS") == true) {
                 Result.failure(AppException.Authentication.EmailAlreadyExists("password"))
             } else {
+                logCaughtException(TAG, "Login con Google fallito", e)
                 Result.failure(e)
             }
         }
@@ -122,6 +127,7 @@ class AuthRepository @Inject constructor(
             user.delete().await()
             Result.success(Unit)
         } catch (e: Exception){
+            logCaughtException(TAG, "Eliminazione utente fallita", e)
             Result.failure(e)
         }
     }
@@ -139,6 +145,7 @@ class AuthRepository @Inject constructor(
         } catch (e: FirebaseAuthInvalidCredentialsException) {
             Result.failure(AppException.Authentication.InvalidCredentials("Password errata"))
         } catch (e: Exception) {
+            logCaughtException(TAG, "Riautenticazione con password fallita", e)
             Result.failure(e)
         }
     }
@@ -151,6 +158,7 @@ class AuthRepository @Inject constructor(
             user.reauthenticate(credential).await()
             Result.success(Unit)
         } catch (e: Exception) {
+            logCaughtException(TAG, "Riautenticazione con Google fallita", e)
             Result.failure(e)
         }
     }

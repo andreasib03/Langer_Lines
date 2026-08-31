@@ -45,8 +45,14 @@ interface AnalysisDao {
     @Query("DELETE FROM skin_analyses")
     suspend fun deleteAll()
 
-    @Query("SELECT * FROM skin_analyses WHERE isSynced = 0")
+    @Query("SELECT * FROM skin_analyses WHERE isSynced = 0 AND syncFailed = 0")
     suspend fun getUnsyncedAnalyses(): List<SkinAnalysisEntity>
+
+    @Query("SELECT * FROM skin_analyses WHERE isSynced = 0 AND syncFailed = 1")
+    suspend fun getPermanentlyFailedAnalyses(): List<SkinAnalysisEntity>
+
+    @Query("UPDATE skin_analyses SET syncFailed = :failed WHERE id = :analysisId")
+    suspend fun updateSyncFailed(analysisId: Long, failed: Boolean)
 
     @Query("UPDATE skin_analyses SET imagePath = :newPath WHERE id = :analysisId")
     suspend fun updateImagePath(analysisId: Long, newPath: String)

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.AspectRatio
@@ -69,6 +68,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.linee_langer.R
+import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.domain.models.LangerLine
 import com.example.linee_langer.core.utils.ImageUtils.toBitmapFixed
 import com.example.linee_langer.ui.feature.camera.components.GalleryAlignmentScreen
@@ -88,13 +88,19 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.graphics.Color
 import com.example.linee_langer.ui.feature.camera.components.BodyPartCard
 import com.example.linee_langer.ui.feature.camera.utils.CameraError
+import com.example.linee_langer.ui.navigation.Screen
 import com.example.linee_langer.ui.theme.CameraOverlayBg
 import com.example.linee_langer.ui.theme.CameraOverlayBorder
 import com.example.linee_langer.ui.theme.CameraOverlayText
+import com.example.linee_langer.ui.theme.CameraOverlayTextMuted
 import com.example.linee_langer.ui.theme.Dimens
-import com.example.linee_langer.ui.theme.Neutral70
 import com.example.linee_langer.ui.theme.WarningLight
 import com.example.linee_langer.ui.theme.appColors
+import kotlin.time.Duration.Companion.milliseconds
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+
+private const val TAG = "CameraScreen"
 
 @Composable
 fun CameraScreen(
@@ -116,6 +122,19 @@ fun CameraScreen(
 
     var hasRequestedOnce by rememberSaveable{ mutableStateOf(false)}
 
+    val lifecycleOwnerForPermission = LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwnerForPermission) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    permissionState = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                }
+            }
+            lifecycleOwnerForPermission.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwnerForPermission.lifecycle.removeObserver(observer)
+            }
+        }
+
     var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     var selectedBodyPart by remember { mutableStateOf<BodyPart?>(null) } // body part selection
@@ -125,12 +144,12 @@ fun CameraScreen(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-            permissionState =
-                if(isGranted) {
-                    PackageManager.PERMISSION_GRANTED
-                } else {
-                    PackageManager.PERMISSION_DENIED
-                }
+        permissionState =
+            if(isGranted) {
+                PackageManager.PERMISSION_GRANTED
+            } else {
+                PackageManager.PERMISSION_DENIED
+            }
         hasRequestedOnce = true
     }
 
@@ -143,24 +162,24 @@ fun CameraScreen(
     val galleryFailedMessage = stringResource(R.string.error_gallery_analysis_failed)
 
     LaunchedEffect(errorMessage) {
-            val message = when (errorMessage) {
-                is CameraError.SaveFailed ->
-                    saveFailedMessage
+        val message = when (errorMessage) {
+            is CameraError.SaveFailed ->
+                saveFailedMessage
 
-                is CameraError.GalleryAnalysisFailed ->
-                    galleryFailedMessage
+            is CameraError.GalleryAnalysisFailed ->
+                galleryFailedMessage
 
-                is CameraError.Generic ->
-                    errorMessage.message
+            is CameraError.Generic ->
+                errorMessage.message
 
-                null -> return@LaunchedEffect
-            }
-            snackbarHostState.showSnackbar(
-                message = message,
-                actionLabel = "OK",
-                duration = SnackbarDuration.Long
-            )
-            analysisViewModel.clearError()
+            null -> return@LaunchedEffect
+        }
+        snackbarHostState.showSnackbar(
+            message = message,
+            actionLabel = "OK",
+            duration = SnackbarDuration.Long
+        )
+        analysisViewModel.clearError()
     }
 
 
@@ -170,113 +189,113 @@ fun CameraScreen(
                 modifier = Modifier.fillMaxSize().background(CameraOverlayBg),
                 Alignment.TopCenter
             ) {
-                    when {
-                        selectedBodyPart == null -> {
-                            BodyPartSelectionOverlay(
-                                onPartSelected = {
-                                    selectedBodyPart = it
-                                    analysisViewModel.setBodyPart(it.id)
-                                }
-                            )
-                        }
+                when {
+                    selectedBodyPart == null -> {
+                        BodyPartSelectionOverlay(
+                            onPartSelected = {
+                                selectedBodyPart = it
+                                analysisViewModel.setBodyPart(it.id)
+                            }
+                        )
+                    }
 
-                        analysisViewModel.galleryBitmapToEdit != null && !analysisViewModel.hasLines -> {
-                            GalleryAlignmentScreen(
-                                bitmap = analysisViewModel.galleryBitmapToEdit!!,
-                                onConfirm = { scale, offset, rotation ->
-                                    analysisViewModel.analyzeGalleryImageWithTransform(
-                                        source = analysisViewModel.galleryBitmapToEdit!!,
-                                        scale = scale,
-                                        rotation = rotation,
-                                        offsetX = offset.x,
-                                        offsetY = offset.y
+                    analysisViewModel.galleryBitmapToEdit != null && !analysisViewModel.hasLines -> {
+                        GalleryAlignmentScreen(
+                            bitmap = analysisViewModel.galleryBitmapToEdit!!,
+                            onConfirm = { scale, offset, rotation ->
+                                analysisViewModel.analyzeGalleryImageWithTransform(
+                                    source = analysisViewModel.galleryBitmapToEdit!!,
+                                    scale = scale,
+                                    rotation = rotation,
+                                    offsetX = offset.x,
+                                    offsetY = offset.y
+                                )
+                            },
+                            onCancel = {
+                                analysisViewModel.clearGalleryEdit()
+                                // Aggiungi una funzione nel VM per resettare galleryBitmapToEdit = null
+                            }
+                        )
+                    }
+
+                    isAnalyzing -> {
+                        AnalysisLoadingScreen()
+                        LaunchedEffect(Unit) {
+                            delay(2000.milliseconds)
+                            isAnalyzing = false
+                        }
+                    }
+                    // 1. Mostra la Preview finale solo se l'analisi è finita e abbiamo la foto
+                    capturedBitmap != null || analysisViewModel.galleryBitmapToEdit != null -> {
+                        val bitmapToShow = capturedBitmap ?: analysisViewModel.galleryBitmapToEdit
+
+                        if(bitmapToShow != null) {
+                            ImagePreviewScreen(
+                                bitmap = bitmapToShow,
+                                analysisViewModel = analysisViewModel,
+                                onConfirm = { linesToSave ->
+                                    analysisViewModel.persistAnalysis(
+                                        bitmap = bitmapToShow,
+                                        lines = linesToSave,
+                                        onSuccess = {
+                                            notificationViewModel.sendAnalysisSuccessNotification(targetRoute = Screen.History.route)
+                                            onClose()
+                                        }
                                     )
                                 },
-                                onCancel = {
+                                onRetake = {
+                                    capturedBitmap = null
                                     analysisViewModel.clearGalleryEdit()
-                                    // Aggiungi una funzione nel VM per resettare galleryBitmapToEdit = null
-                                }
-                            )
-                        }
-
-                        isAnalyzing -> {
-                            AnalysisLoadingScreen()
-                            LaunchedEffect(Unit) {
-                                delay(2000)
-                                isAnalyzing = false
-                            }
-                        }
-                        // 1. Mostra la Preview finale solo se l'analisi è finita e abbiamo la foto
-                        capturedBitmap != null || analysisViewModel.galleryBitmapToEdit != null -> {
-                            val bitmapToShow = capturedBitmap ?: analysisViewModel.galleryBitmapToEdit
-
-                            if(bitmapToShow != null) {
-                                ImagePreviewScreen(
-                                    bitmap = bitmapToShow,
-                                    analysisViewModel = analysisViewModel,
-                                    onConfirm = { linesToSave ->
-                                        analysisViewModel.persistAnalysis(
-                                            bitmap = bitmapToShow,
-                                            lines = linesToSave,
-                                            onSuccess = {
-                                                notificationViewModel.sendAnalysisSuccessNotification()
-                                                onClose()
-                                            }
-                                        )
-                                    },
-                                    onRetake = {
-                                        capturedBitmap = null
-                                        analysisViewModel.clearGalleryEdit()
-                                    }
-                                )
-                            }
-                        }
-
-                        // 3. Altrimenti mostra la Fotocamera (solo se non siamo in preview/analisi)
-                        else -> {
-                            CameraContent(
-                                analysisViewModel = analysisViewModel,
-                                onClose = { selectedBodyPart = null },
-                                onImageCaptured = { bitmap ->
-                                    capturedBitmap = bitmap
-                                    isAnalyzing = true // Avvia l'animazione di analisi
                                 }
                             )
                         }
                     }
 
+                    // 3. Altrimenti mostra la Fotocamera (solo se non siamo in preview/analisi)
+                    else -> {
+                        CameraContent(
+                            analysisViewModel = analysisViewModel,
+                            onClose = { selectedBodyPart = null },
+                            onImageCaptured = { bitmap ->
+                                capturedBitmap = bitmap
+                                isAnalyzing = true // Avvia l'animazione di analisi
+                            }
+                        )
+                    }
+                }
 
-                    // Indicatore dell'area scelta (il "chip" in alto)
-                    // CHIP IN ALTO (Solo se una parte è selezionata e non siamo in analisi/preview)
-                    if (selectedBodyPart != null && capturedBitmap == null && !isAnalyzing && analysisViewModel.galleryBitmapToEdit == null) {
-                        Surface(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = Dimens.XLarge)
-                                .clickable { selectedBodyPart = null },
-                            color = CameraOverlayBg.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(Dimens.RadiusSmall),
-                            border = BorderStroke(Dimens.ExtraSmall, CameraOverlayBorder.copy(alpha = 0.3f))
+
+                // Indicatore dell'area scelta (il "chip" in alto)
+                // CHIP IN ALTO (Solo se una parte è selezionata e non siamo in analisi/preview)
+                if (selectedBodyPart != null && capturedBitmap == null && !isAnalyzing && analysisViewModel.galleryBitmapToEdit == null) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = Dimens.XLarge)
+                            .clickable { selectedBodyPart = null },
+                        color = CameraOverlayBg.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(Dimens.RadiusSmall),
+                        border = BorderStroke(Dimens.ExtraSmall, CameraOverlayBorder.copy(alpha = 0.3f))
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = Dimens.Medium, vertical = Dimens.Medium)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = Dimens.Medium, vertical = Dimens.Medium)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.body_part_label, stringResource(selectedBodyPart!!.name)),
-                                    color = CameraOverlayText,
-                                    style = MaterialTheme.typography.labelLarge
-                                )
-                                Spacer(modifier = Modifier.width(Dimens.Small))
-                                Icon(
-                                    painterResource(R.drawable.ic_sync),
-                                    contentDescription = "",
-                                    tint = CameraOverlayText,
-                                    modifier = Modifier.size(Dimens.IconXSmall)
-                                )
-                            }
+                            Text(
+                                text = stringResource(R.string.body_part_label, stringResource(selectedBodyPart!!.name)),
+                                color = CameraOverlayText,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                            Spacer(modifier = Modifier.width(Dimens.Small))
+                            Icon(
+                                painterResource(R.drawable.ic_sync),
+                                contentDescription = "",
+                                tint = CameraOverlayText,
+                                modifier = Modifier.size(Dimens.IconXSmall)
+                            )
                         }
                     }
+                }
             }
         }
 
@@ -300,8 +319,8 @@ fun CameraScreen(
                 onRetry = { launcher.launch(Manifest.permission.CAMERA) }
             )
         }
-        }
     }
+}
 
 
 
@@ -340,6 +359,7 @@ private fun CameraContent(
     onClose: () -> Unit,
     onImageCaptured: (Bitmap) -> Unit
 ) {
+    val captureFailedMessage = stringResource(R.string.error_capture_failed)
     val context = LocalContext.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -373,8 +393,10 @@ private fun CameraContent(
                 val cameraProvider = cameraProviderFuture.get()
                 cameraProvider.unbindAll()
             } catch (e: Exception) {
-                Log.e("CameraX", "Cleanup failed", e)
+                // Cleanup della camera non riuscito: nessuna azione necessaria, la Activity verrà distrutta.
+                logCaughtException(TAG, "Unbind camera in onDispose fallito", e)
             }
+            cameraExecutor.shutdown()
         }
     }
 
@@ -430,31 +452,31 @@ private fun CameraContent(
                             analysis,
                             imageCapture
                         )
-                        Log.d("CameraFlip", "Binding completato con successo per: $currentLens")
                     } catch (e: Exception) {
-                        Log.e("CameraX", "Binding failed", e)
+                        // Binding fotocamera non riuscito per questo lens: il preview resta fermo all'ultimo frame valido.
+                        logCaughtException(TAG, "Bind camera al lifecycle fallito (lens=$currentLens)", e)
                     }
                 }, executor)
             }
         )
 
-            LangerOverlay(lines = analysisViewModel.detectedLines)
+        LangerOverlay(lines = analysisViewModel.detectedLines)
 
-            IconButton(
-                onClick = onClose,
-                modifier = Modifier
-                    .padding(top = Dimens.Medium, start = Dimens.Medium)
-                    .size(Dimens.CameraIconButton)
-                    .background(CameraOverlayBg.copy(alpha = 0.5f), CircleShape)
-            ) {
-                Icon(
-                    painterResource(R.drawable.ic_back),
-                    contentDescription = stringResource(R.string.close),
-                    tint = CameraOverlayText,
-                    modifier = Modifier.size(Dimens.XLarge)
-                )
-            }
-        
+        IconButton(
+            onClick = onClose,
+            modifier = Modifier
+                .padding(top = Dimens.Medium, start = Dimens.Medium)
+                .size(Dimens.CameraIconButton)
+                .background(CameraOverlayBg.copy(alpha = 0.5f), CircleShape)
+        ) {
+            Icon(
+                painterResource(R.drawable.ic_back),
+                contentDescription = stringResource(R.string.close),
+                tint = CameraOverlayText,
+                modifier = Modifier.size(Dimens.XLarge)
+            )
+        }
+
         if(!analysisViewModel.isOpenCvAvailable){
             OpenCvUnavailableBanner(
                 modifier = Modifier
@@ -530,7 +552,7 @@ private fun CameraContent(
                                     }
 
                                     override fun onError(exception: ImageCaptureException) {
-                                        Log.e("CameraX", "Capture failed", exception)
+                                        analysisViewModel.reportError(CameraError.Generic(captureFailedMessage))
                                     }
                                 }
                             )
@@ -542,10 +564,8 @@ private fun CameraContent(
                     onClick = {
                         lensFacing =
                             if (lensFacing == CameraSelector.LENS_FACING_BACK) {
-                                Log.d("CameraFlip", "Passo alla FRONT")
                                 CameraSelector.LENS_FACING_FRONT
                             } else {
-                                Log.d("CameraFlip", "Passo alla BACK")
                                 CameraSelector.LENS_FACING_BACK
                             }
                     },
@@ -688,7 +708,7 @@ fun ImagePreviewScreen(
             ActionButton(
                 label = if (analysisViewModel.isProcessing) stringResource(R.string.saving) else stringResource(R.string.confirm),
                 icon = if (analysisViewModel.isProcessing) R.drawable.ic_sync else R.drawable.ic_check,
-                color = if (analysisViewModel.isProcessing) Neutral70 else qualityStatus.color,
+                color = if (analysisViewModel.isProcessing) CameraOverlayTextMuted else qualityStatus.color,
                 onClick = {
                     if (!analysisViewModel.isProcessing) {
                         onConfirm(staticLines)
@@ -783,4 +803,3 @@ fun BodyPartSelectionOverlay(
         }
     }
 }
-

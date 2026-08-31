@@ -135,6 +135,10 @@ class AuthViewModel @Inject constructor(
                         .onFailure { error ->
                             uiState = AuthUiState.Error(buildErrorMessage(error))
                         }
+                } else {
+                    uiState = AuthUiState.Error(
+                        appContext.getString(R.string.error_google_signin)
+                    )
                 }
             } catch (e: GetCredentialException) {
                 uiState = AuthUiState.Error(

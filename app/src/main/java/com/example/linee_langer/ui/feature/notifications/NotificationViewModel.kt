@@ -50,11 +50,18 @@ class NotificationViewModel @Inject constructor(
         }
     }
 
-    fun sendAnalysisSuccessNotification() {
+    fun onNotificationClicked(notification: NotificationItem) {
+        viewModelScope.launch(Dispatchers.IO) {
+            notificationRepository.markAsRead(notification.id)
+        }
+    }
+
+    fun sendAnalysisSuccessNotification(targetRoute: String? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             notificationRepository.addNotification(
                 title = context.getString(R.string.notification_analysis_complete),
-                description = context.getString(R.string.notification_analysis_body)
+                description = context.getString(R.string.notification_analysis_body),
+                targetRoute = targetRoute
             )
         }
 

@@ -3,7 +3,6 @@ package com.example.linee_langer.ui.feature.profile
 import androidx.compose.runtime.getValue
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
@@ -15,7 +14,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.linee_langer.BuildConfig
 import com.example.linee_langer.R
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
+import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.data.local.AnalysisRepository
+import com.example.linee_langer.data.local.NotificationRepository
 import com.example.linee_langer.data.local.UserPreferencesManager
 import com.example.linee_langer.data.remote.AuthRepository
 import com.example.linee_langer.data.remote.FirebaseRepository
@@ -41,6 +42,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+private const val TAG = "ProfileViewModel"
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val firebaseRepository: FirebaseRepository,
@@ -48,7 +50,8 @@ class ProfileViewModel @Inject constructor(
     private val repositoryAnalysis: AnalysisRepository,
     private val userPreferencesManager: UserPreferencesManager,
     private val userUseCase: UserUseCase,
-    @ApplicationContext private val appContext: Context
+    private val notificationRepository: NotificationRepository,
+    @param:ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     val fullHistory: Flow<List<AnalysisWithLines>> = repositoryAnalysis.allAnalyses
@@ -66,6 +69,9 @@ class ProfileViewModel @Inject constructor(
 
     private val _isEmailVerified = MutableStateFlow(false)
     val isEmailVerified = _isEmailVerified.asStateFlow()
+
+    private val _deleteDataError = MutableStateFlow(false)
+    val deleteDataError: StateFlow<Boolean> = _deleteDataError.asStateFlow()
 
     val isGoogleUser: Boolean by lazy {
         authRepository.currentUser?.providerData?.any {
@@ -102,6 +108,7 @@ class ProfileViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
+                logCaughtException(TAG, "Caricamento profilo da Firebase fallito, uso fallback DataStore", e)
                 loadProfileFromDataStore()
             }
         }
@@ -136,9 +143,16 @@ class ProfileViewModel @Inject constructor(
     fun updateProfileImage(uri: Uri) {
         viewModelScope.launch {
             try {
+                withContext(Dispatchers.IO){
+                    val newFileName = uri.lastPathSegment
+                    appContext.filesDir
+                        .listFiles{ file -> file.name.startsWith("profile_") && file.name.endsWith(".jpg")}
+                        ?.filter { it.name != newFileName }
+                        ?.forEach { it.delete() }
+                }
                 userPreferencesManager.saveProfileImageUri(uri.toString())
             } catch (e: Exception) {
-                Log.e("Error updating profile image", "${e.message}")
+                logCaughtException(TAG, "Salvataggio URI immagine profilo fallito (uri=$uri)", e)
             }
         }
     }
@@ -163,6 +177,7 @@ class ProfileViewModel @Inject constructor(
                         onResult(false)
                     }
             } catch (e: Exception) {
+                logCaughtException(TAG, "Aggiornamento email fallito", e)
                 _isLoading.value = false
                 onResult(false)
             }
@@ -192,6 +207,7 @@ class ProfileViewModel @Inject constructor(
 
                 // 3. Svuota il database locale Room e le SharedPreferences/DataStore
                 repositoryAnalysis.deleteAllAnalysis()
+                notificationRepository.deleteAllNotifications()
                 userPreferencesManager.clearUserSession()
                 // 4. Reset dello stato della UI del profilo
                 _userProfile.value = null
@@ -203,9 +219,9 @@ class ProfileViewModel @Inject constructor(
                 onComplete()
 
             } catch (e: Exception) {
-                Log.e("ProfileViewModel", "Errore critico durante la cancellazione dei dati: ${e.message}")
+                logCaughtException(TAG, "Cancellazione completa dati utente fallita (uid=$uid)", e)
                 _isLoading.value = false
-                // Opzionale: mostra un messaggio di errore all'utente tramite uno stato errorMessage
+                _deleteDataError.value = true
             }
         }
     }
@@ -227,7 +243,9 @@ class ProfileViewModel @Inject constructor(
                         eta      = eta
                     )
                 }
-            } catch (e: Exception) { }
+            } catch (e: Exception) {
+                logCaughtException(TAG, "Caricamento profilo da DataStore fallito", e)
+            }
         }
     }
 
@@ -255,81 +273,6 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun verifyPasswordAndDelete(password: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            authRepository.reauthenticateWithPassword(password)
-                .onSuccess {
-                    // Password corretta → procedi con la cancellazione
-                    userUseCase.performFullAccountDeletion()
-                        .onSuccess {
-                            _userProfile.value = null
-                            _isLoading.value = false
-                            onSuccess()
-                        }
-                        .onFailure { e ->
-                            _isLoading.value = false
-                            onError(e.localizedMessage ?: appContext.getString(R.string.error_delete_account))
-                        }
-                }
-                .onFailure { e ->
-                    _isLoading.value = false
-                    when (e) {
-                        is AppException.Authentication.InvalidCredentials ->
-                            onError(appContext.getString(R.string.error_wrong_password))
-                        else -> onError(e.localizedMessage ?: appContext.getString(R.string.error_auth_generic))
-                    }
-                }
-        }
-    }
-
-    fun reauthenticateWithGoogleAndDelete(
-        context: Context,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        val credentialManager = CredentialManager.create(context)
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                val googleIdOption = GetGoogleIdOption.Builder()
-                    .setFilterByAuthorizedAccounts(true)   // solo account già autorizzati
-                    .setServerClientId(BuildConfig.GOOGLE_CLIENT_ID)
-                    .setAutoSelectEnabled(true)
-                    .build()
-                val request = GetCredentialRequest.Builder()
-                    .addCredentialOption(googleIdOption)
-                    .build()
-                val result = credentialManager.getCredential(context, request)
-                val credential = result.credential
-                if (credential is GoogleIdTokenCredential) {
-                    authRepository.reauthenticateWithGoogle(credential.idToken)
-                        .onSuccess {
-                            userUseCase.performFullAccountDeletion()
-                                .onSuccess {
-                                    _userProfile.value = null
-                                    _isLoading.value = false
-                                    onSuccess()
-                                }
-                                .onFailure { e ->
-                                    _isLoading.value = false
-                                    onError(e.localizedMessage ?: appContext.getString(R.string.error_delete_account))
-                                }
-                        }
-                        .onFailure { e ->
-                            _isLoading.value = false
-                            onError(e.localizedMessage ?: appContext.getString(R.string.error_google_reauth))
-                        }
-                } else {
-                    _isLoading.value = false
-                    onError(appContext.getString(R.string.error_google_credential_invalid))
-                }
-            } catch (e: GetCredentialException) {
-                _isLoading.value = false
-                onError(appContext.getString(R.string.error_google_cancelled))
-            }
-        }
-    }
 
     fun verifyGoogleOnly(
         context: Context,
@@ -366,7 +309,7 @@ class ProfileViewModel @Inject constructor(
                     _isLoading.value = false
                     onError(appContext.getString(R.string.error_google_credential_invalid))
                 }
-            } catch (e: GetCredentialException) {
+            } catch (_: GetCredentialException) {
                 _isLoading.value = false
                 onError(appContext.getString(R.string.error_google_cancelled))
             }

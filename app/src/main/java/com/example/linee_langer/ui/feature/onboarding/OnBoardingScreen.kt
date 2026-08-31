@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,31 +31,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,16 +59,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -86,15 +72,12 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.linee_langer.R
 import com.example.linee_langer.domain.models.LangerGoal
-import com.example.linee_langer.ui.feature.auth.AuthTextField
 import com.example.linee_langer.ui.feature.onboarding.components.OnboardingSkinTypeScreen
 import com.example.linee_langer.ui.theme.AppTypography
 import com.example.linee_langer.ui.theme.Dimens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 const val ONBOARDING_PAGE_COUNT = 2
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -203,186 +186,6 @@ fun OnBoardingScreen(
     }
 }
 
-
-@Composable
-fun EmailVerificationBlock(
-    onDismiss: () -> Unit,
-    onVerified: () -> Unit,
-    onResendEmail: () -> Unit
-) {
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorScheme.onBackground)
-            .padding(Dimens.XLarge),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                painter = painterResource(R.drawable.ic_profile), // Usa un'icona mail
-                contentDescription = "",
-                modifier = Modifier.size(Dimens.CameraTopPadding),
-                tint = colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(Dimens.XLarge))
-            Text(
-                stringResource(R.string.verify_email_title),
-                style = typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                stringResource(R.string.verify_email_body),
-                textAlign = TextAlign.Center,
-                color = colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(Dimens.XXLarge))
-
-            Button(
-                onClick = onVerified,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.verify_email_clicked))
-            }
-
-            Spacer(modifier = Modifier.height(Dimens.Standard))
-
-            TextButton(onClick = onResendEmail) {
-                Text(stringResource(R.string.verify_email_resend))
-            }
-        }
-    }
-}
-
-
-@Composable
-private fun DataCollectionPage(
-    name: String,
-    onNameChange: (String) -> Unit,
-    lastName: String,
-    onLastNameChange: (String) -> Unit,
-    birthDate: String,
-    onBirthDateChange: (String) -> Unit
-) {
-    val focusManager = LocalFocusManager.current
-    // DatePicker — visibile solo per utenti Google
-    var showDatePicker by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = run {
-            val cal = android.icu.util.Calendar.getInstance()
-            cal.add(android.icu.util.Calendar.YEAR, -18)
-            cal.timeInMillis
-        },
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                val minDate = android.icu.util.Calendar.getInstance().apply {
-                    add(android.icu.util.Calendar.YEAR, -120)
-                }.timeInMillis
-                val yesterday = android.icu.util.Calendar.getInstance().apply {
-                    add(android.icu.util.Calendar.DAY_OF_YEAR, -1)
-                }.timeInMillis
-                return utcTimeMillis in minDate..yesterday
-            }
-        }
-    )
-
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        val formatted = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                            .format(Date(millis))
-                        onBirthDateChange(formatted)
-                    }
-                    showDatePicker = false
-                }) { Text(stringResource(R.string.confirm)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text(stringResource(R.string.close))
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = Dimens.XLarge)
-            .imePadding()
-    ) {
-        Spacer(Modifier.height(Dimens.XLarge))
-
-        Text(
-            text = stringResource(R.string.personal),
-            style = typography.headlineMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = colorScheme.onSurface
-        )
-        Spacer(Modifier.height(Dimens.ExtraSmall))
-        Text(
-            text = stringResource(R.string.google_data_collection_subtitle),
-            style = typography.bodyMedium,
-            color = colorScheme.onSurfaceVariant
-        )
-
-        Spacer(Modifier.height(Dimens.XLarge))
-
-        AuthTextField(
-            value = name,
-            onValueChange = onNameChange,
-            label = stringResource(R.string.auth_first_name),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Words,
-                imeAction = ImeAction.Next
-            ),
-            keyboardActions = KeyboardActions(
-                onNext = { focusManager.moveFocus(FocusDirection.Down) }
-            )
-        )
-
-        Spacer(Modifier.height(Dimens.Standard))
-
-        AuthTextField(
-            value = lastName,
-            onValueChange = onLastNameChange,
-            label = stringResource(R.string.auth_last_name),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Words,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = { focusManager.clearFocus() }
-            )
-        )
-
-        Spacer(Modifier.height(Dimens.Standard))
-
-        AuthTextField(
-            value = birthDate,
-            onValueChange = {},
-            label = stringResource(R.string.auth_birth_date),
-            readOnly = true,
-            trailingIcon = {
-                IconButton(onClick = { showDatePicker = true }) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_analysis),
-                        contentDescription = stringResource(R.string.auth_pick_date),
-                        tint = colorScheme.primary
-                    )
-                }
-            },
-            onClick = { showDatePicker = true }
-        )
-
-        Spacer(Modifier.height(Dimens.XXLarge))
-    }
-}
 @Composable
 internal fun CardChoicesPage(
     selectedGoals: Set<LangerGoal>,
@@ -614,14 +417,14 @@ private fun FinalPage(onAnimationFinished: () -> Unit) {
     LaunchedEffect(progress) {
         if (progress == 1f) {
             // Un piccolissimo delay artificiale per non far scattare il cambio schermo in modo troppo brusco
-            delay(500)
+            delay(500.milliseconds)
             onAnimationFinished()
         }
     }
 
     LaunchedEffect(compositionResult.isFailure) {
         if (compositionResult.isFailure) {
-            delay(2000)
+            delay(2000.milliseconds)
             onAnimationFinished()
         }
     }

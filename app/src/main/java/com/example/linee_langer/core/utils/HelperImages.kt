@@ -6,13 +6,12 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
-import com.example.linee_langer.R
 import com.example.linee_langer.domain.models.LangerLine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.OutputStream
 
+private const val TAG = "HelperImages"
 
 suspend fun saveAnalysisData(
     context: Context,
@@ -29,9 +28,10 @@ suspend fun saveAnalysisData(
         onLocalSave(timestamp, savedUri.toString())
         onSync()
     } catch (e: Exception) {
+        logCaughtException(TAG, "Salvataggio dati analisi su DB fallito dopo scrittura immagine (uri=$savedUri)", e)
         // Se il salvataggio su DB fallisce, sarebbe opportuno gestire
         // la pulizia dell'immagine appena salvata (opzionale ma consigliato)
-        throw Exception("Errore database: ${e.message}")
+        throw Exception("Errore database: ${e.message}", e)
     }
 
 }
@@ -75,11 +75,11 @@ fun saveBitmapToGallery(context: Context, bitmap: Bitmap, timestamp: Long): Uri?
                     bitmap.compress(Bitmap.CompressFormat.WEBP, 85, stream)
                 }
             }
-            Log.d("SaveBitmapToGallery", context.getString(R.string.log_success_image))
             return uri
         }
     } catch (e: Exception) {
-        Log.e("SaveBitmapToGallery", context.getString(R.string.log_failed_image), e)
+        logCaughtException(TAG, "Scrittura bitmap in galleria fallita (uri=$imageUri)", e)
+        return null
     }
 
     return null

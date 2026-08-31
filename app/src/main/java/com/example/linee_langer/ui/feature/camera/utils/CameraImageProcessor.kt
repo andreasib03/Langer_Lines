@@ -5,12 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
-import android.util.Log
 import androidx.exifinterface.media.ExifInterface
+import com.example.linee_langer.core.utils.logCaughtException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val TAG = "CameraImageProcessor"
 @Singleton
 class CameraImageProcessor @Inject constructor(
     @ApplicationContext private val context: Context
@@ -36,7 +37,7 @@ class CameraImageProcessor @Inject constructor(
 
             rotateIfRequired(sampled, uri)
         } catch (e: Exception) {
-            Log.e(TAG, "Errore caricamento immagine da URI", e)
+            logCaughtException(TAG, "Caricamento immagine da uri fallito (uri=$uri)", e)
             null
         }
     }
@@ -79,7 +80,7 @@ class CameraImageProcessor @Inject constructor(
                 rotated
             } ?: bitmap
         } catch (e: Exception) {
-            Log.w(TAG, "Impossibile leggere metadati EXIF", e)
+            logCaughtException(TAG, "Correzione rotazione EXIF fallita (uri=$uri)", e)
             bitmap
         }
     }
@@ -101,7 +102,4 @@ class CameraImageProcessor @Inject constructor(
         return inSampleSize
     }
 
-    companion object {
-        private const val TAG = "CameraImageProcessor"
-    }
 }

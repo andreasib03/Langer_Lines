@@ -1,7 +1,6 @@
 package com.example.linee_langer.ui.feature.settings
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
@@ -11,6 +10,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.data.local.UserPreferencesManager
 import com.example.linee_langer.domain.usecases.UserUseCase
 import com.example.linee_langer.ui.theme.locale.AppLocaleManager
@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+private const val TAG = "SettingsViewModel"
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     application: Application,
@@ -83,10 +84,8 @@ class SettingsViewModel @Inject constructor(
                     ExistingPeriodicWorkPolicy.KEEP,
                     request
                 )
-                Log.d("SettingsVM", "Pulizia automatica attivata")
             } else {
                 workManager.cancelUniqueWork("CacheCleanup")
-                Log.d("SettingsVM", "Pulizia automatica disattivata")
             }
         }
     }
@@ -95,7 +94,7 @@ class SettingsViewModel @Inject constructor(
      * Esegue una pulizia manuale della cache tramite WorkManager.
      * Restituisce true se l'operazione è stata accodata correttamente.
      */
-     fun clearCache(): Boolean {
+    fun clearCache(): Boolean {
         return try {
             val context = getApplication<Application>()
 
@@ -113,7 +112,7 @@ class SettingsViewModel @Inject constructor(
 
             true
         } catch (e: Exception) {
-            Log.e("Clear cache problem: ", "${e.message}")
+            logCaughtException(TAG, "Accodamento pulizia cache manuale fallito", e)
             false
         }
     }
@@ -123,15 +122,14 @@ class SettingsViewModel @Inject constructor(
         val recoveryRequest = OneTimeWorkRequestBuilder<ImageRecoveryWorker>().build()
 
         WorkManager.getInstance(context).enqueue(recoveryRequest)
-        Log.d("SettingsVM", "Image Recovery Worker accodato")
     }
 
 
     fun logout(onComplete: () -> Unit) {
-            viewModelScope.launch {
-                userUseCase.performFullLogout()
-                onComplete()
-            }
+        viewModelScope.launch {
+            userUseCase.performFullLogout()
+            onComplete()
+        }
     }
 
 

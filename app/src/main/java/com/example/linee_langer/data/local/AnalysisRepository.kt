@@ -1,5 +1,6 @@
 package com.example.linee_langer.data.local
 
+import androidx.room.Transaction
 import com.example.linee_langer.core.database.dao.AnalysisDao
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
 import com.example.linee_langer.core.database.entity.LangerLineEntity
@@ -13,6 +14,7 @@ class AnalysisRepository @Inject constructor(
     val allAnalyses: Flow<List<AnalysisWithLines>> = dao.getAllAnalysesWithLines()
     val analysisCount: Flow<Int> = dao.getAnalysisCount()
 
+    @Transaction
     suspend fun saveFullAnalysis(analysis: SkinAnalysisEntity, lines: List<LangerLineEntity>){
         val generatedId = dao.insertAnalysis(analysis)
         val linesWithId = lines.map { it.copy( analysisId = generatedId ) }
@@ -27,8 +29,14 @@ class AnalysisRepository @Inject constructor(
 
     suspend fun getUnsyncedAnalyses() = dao.getUnsyncedAnalyses()
 
+    suspend fun getPermanentlyFailedAnalyses() = dao.getPermanentlyFailedAnalyses()
+
     suspend fun updateSyncStatus(id: Long, status: Boolean){
         dao.updateSyncStatus(id, status)
+    }
+
+    suspend fun updateSyncFailed(id: Long, failed: Boolean) {
+        dao.updateSyncFailed(id, failed)
     }
 
     suspend fun getLastAnalysisDate() = dao.getLastAnalysisDate()
@@ -47,6 +55,11 @@ class AnalysisRepository @Inject constructor(
     suspend fun updateImagePath(id: Long, newPath: String) {
         dao.updateImagePath(id, newPath)
     }
+
+    suspend fun updateImagePathByTimestamp(timestamp: Long, newPath: String) {
+        dao.updateImagePathByTimestamp(timestamp, newPath)
+    }
+
 
     // --- METODI DI CANCELLAZIONE ---
     suspend fun deleteFullAnalysis(analysis: SkinAnalysisEntity) {

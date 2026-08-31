@@ -3,16 +3,9 @@ package com.example.linee_langer.core.di
 import android.content.Context
 import androidx.room.Room
 import com.example.linee_langer.core.database.dao.NotificationDAO
-import com.example.linee_langer.data.local.AnalysisRepository
-import com.example.linee_langer.data.remote.AuthRepository
-import com.example.linee_langer.data.local.NotificationRepository
-import com.example.linee_langer.data.local.UserPreferencesManager
 import com.example.linee_langer.core.database.AppDatabase
+import com.example.linee_langer.core.database.MigrationDatabases
 import com.example.linee_langer.core.database.dao.AnalysisDao
-import com.example.linee_langer.domain.usecases.AnalyzeSkinUseCases
-import com.example.linee_langer.domain.detector.ILangerDetector
-import com.example.linee_langer.domain.detector.LangerDetector
-import com.example.linee_langer.domain.usecases.UserUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,8 +25,13 @@ object DatabaseModule {
             AppDatabase::class.java,
             "Langer_DB"
         )
+            .addMigrations(
+                MigrationDatabases.MIGRATION_1_2,
+                MigrationDatabases.MIGRATION_6_7,
+                MigrationDatabases.MIGRATION_7_8,
+                MigrationDatabases.MIGRATION_8_9
+            )
             .fallbackToDestructiveMigration()
-            //.addMigrations(MIGRATION_1_2) // fix per prod
             .build()
     }
 

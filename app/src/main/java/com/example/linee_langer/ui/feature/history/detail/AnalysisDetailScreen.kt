@@ -17,7 +17,6 @@ import coil.compose.AsyncImage
 import com.example.linee_langer.R
 import com.example.linee_langer.ui.shared.components.LangerScaffold
 import com.example.linee_langer.ui.feature.camera.components.LangerOverlay
-import com.example.linee_langer.ui.feature.profile.AnalysisInfoPanel
 import com.example.linee_langer.ui.theme.CameraOverlayBg
 import com.example.linee_langer.core.utils.toDomainModel
 import com.example.linee_langer.ui.feature.notifications.NotificationViewModel
@@ -26,13 +25,11 @@ import com.example.linee_langer.ui.theme.Dimens
 
 @Composable
 fun AnalysisDetailScreen(
-    analysisId: Long,
     notificationViewModel: NotificationViewModel,
     detailViewModel: AnalysisDetailViewModel,
     onBack: () -> Unit
 ) {
-    // Retrieve analysis dal database with ViewModel
-    val analysis by detailViewModel.getAnalysisById(analysisId).collectAsState(initial = null)
+    val analysis by detailViewModel.analysis.collectAsState(initial = null)
 
     LangerScaffold(
         title = stringResource(R.string.detailed_analysis),
@@ -40,38 +37,47 @@ fun AnalysisDetailScreen(
         notificationViewModel = notificationViewModel,
         onBackClick = onBack
     ) { innerPadding ->
-        analysis?.let { data ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(CameraOverlayBg)
-            ) {
-                // 1. Visualization con Overlay
+        when (val data = analysis) {
+            null -> {
+                // Stato di caricamento iniziale (null = non ancora emesso dal Flow)
                 Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(bottomStart = Dimens.XXLarge, bottomEnd = Dimens.XXLarge))
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
-                    // Saved image
-                    AsyncImage(
-                        model = data.analysis.imagePath,
-                        contentDescription = data.analysis.bodyPartId,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-
-                    // Overlay delle linee saved
-                    // animation
-                    LangerOverlay(
-                        lines = data.lines.map { it.toDomainModel() }, // Convert Entity -> Model
-                        isVisible = true
-                    )
+                    androidx.compose.material3.CircularProgressIndicator()
                 }
+            }
+            else -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .background(CameraOverlayBg)
+                ) {
+                    // 1. Visualization con Overlay
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(bottomStart = Dimens.XXLarge, bottomEnd = Dimens.XXLarge))
+                    ) {
+                        AsyncImage(
+                            model = data.analysis.imagePath,
+                            contentDescription = data.analysis.bodyPartId,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                        LangerOverlay(
+                            lines = data.lines.map { it.toDomainModel() },
+                            isVisible = true
+                        )
+                    }
 
-                // 2. Info Panel (Modern Sheet)
-                AnalysisInfoPanel(data)
+                    // 2. Info Panel
+                    AnalysisInfoPanel(data)
+                }
             }
         }
     }

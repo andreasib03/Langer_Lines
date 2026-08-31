@@ -1,7 +1,6 @@
 package com.example.linee_langer
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -66,8 +65,6 @@ class MainActivity : ComponentActivity() {
                                 onboardingDone == false -> Screen.Welcome.route
                                 else -> "main_flow"
                             }
-                            Log.d("NAV_DEBUG", "startDestination = $startDestination")
-
                             // usata per riforzare la ricreazione di AppNavigation quando startDestination cambia dopo logout o cancellazione utente
                             key(startDestination) {
                                 AppNavigation(startDestination = startDestination)
