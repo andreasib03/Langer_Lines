@@ -1,7 +1,9 @@
 package com.example.linee_langer.ui.feature.camera.model
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.example.linee_langer.R
 import com.example.linee_langer.domain.models.BodyPartIds
@@ -23,10 +25,15 @@ val bodyPartsList = listOf(
     BodyPart(BodyPartIds.ABDOMEN, R.string.abdomen, R.drawable.ic_abdomen)
 )
 
+
+fun bodyPartLabel(context: Context, bodyPartId: String): String {
+    val part = bodyPartsList.find { it.id == bodyPartId.lowercase() }
+    return if (part != null) context.getString(part.name) else bodyPartId
+}
+
 @Composable
 fun bodyPartLabel(bodyPartId: String): String {
-    val part = bodyPartsList.find { it.id == bodyPartId.lowercase() }
-    return if (part != null) stringResource(part.name) else bodyPartId
+    return bodyPartLabel(LocalContext.current, bodyPartId)
 }
 
 data class QualityInfo(val label: String, val color: Color, val icon: Int)

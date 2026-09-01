@@ -19,6 +19,9 @@ import kotlin.collections.joinToString
 import androidx.core.net.toUri
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
 import com.example.linee_langer.core.utils.logCaughtException
+import com.example.linee_langer.core.utils.toStringRes
+import com.example.linee_langer.domain.models.TensionLevel
+import com.example.linee_langer.ui.feature.camera.model.bodyPartLabel
 
 private const val TAG = "HelperProfile"
 fun exportDataAsPdf(
@@ -71,21 +74,52 @@ private fun generateDataHtml(
     val strNoImage     = context.getString(R.string.pdf_no_image)
     val appName        = context.getString(R.string.app_name)
 
+    // Nuove stringhe per i dettagli tecnici nel PDF
+    val strBodyPart     = context.getString(R.string.analysis_info_body_part)
+    val strAvgIntensity = context.getString(R.string.analysis_info_avg_intensity)
+    val strTension      = context.getString(R.string.analysis_info_tension_level)
+    val strSynced       = context.getString(R.string.detail_synced)
+
     val tableRows = analyses.joinToString("") { item ->
         val dateString = sdf.format(Date(item.analysis.date))
         val lineCount = item.lines.size
-        val based64Image = getResizedImageBase64(context,item.analysis.imagePath)
-        val imageHtml = if (based64Image != null){
-            """<img src="data:image/jpeg;base64,$based64Image" style="width: 100px; height: auto; border-radius: 4px;"/>"""
+
+        // Calcolo intensità media e livello di tensione
+        val avgIntensityPercent = if (item.lines.isEmpty()) 0
+        else (item.lines.map { it.intensity }.average() * 100).toInt()
+        val tensionLevel = TensionLevel.fromLines(item.lines)
+        val tensionText = context.getString(tensionLevel.toStringRes())
+
+        // Etichetta zona corpo
+        val bodyLabel = bodyPartLabel(context, item.analysis.bodyPartId)
+
+        // Stato sincronizzazione
+        val syncStatusText = when {
+            item.analysis.isSynced -> context.getString(R.string.detail_synced_yes)
+            item.analysis.syncFailed -> context.getString(R.string.detail_synced_error)
+            else -> context.getString(R.string.detail_synced_pending)
+        }
+
+        val based64Image = getResizedImageBase64(context, item.analysis.imagePath)
+        val imageHtml = if (based64Image != null) {
+            """<img src="data:image/jpeg;base64,$based64Image" style="width: 80px; height: auto; border-radius: 4px;"/>"""
         } else {
             strNoImage
         }
+
         val resultText = context.getString(R.string.detected_lines, lineCount)
+
         """
         <tr>
             <td>$dateString</td>
-            <td style="width: 30%;">$imageHtml</td>
-            <td>$resultText</td>
+            <td style="text-align: center;">$imageHtml</td>
+            <td>
+                <strong>$bodyLabel</strong><br/>
+                $resultText<br/>
+                <small><strong>$strTension:</strong> $tensionText</small><br/>
+                <small><strong>$strAvgIntensity:</strong> $avgIntensityPercent%</small><br/>
+                <small><strong>$strSynced:</strong> $syncStatusText</small>
+            </td>
         </tr>
         """.trimIndent()
     }
@@ -99,10 +133,11 @@ private fun generateDataHtml(
                 .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
                 .user-info { margin-bottom: 30px; background: #f4f4f4; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
                 table { width: 100%; border-collapse: collapse; }
-                th, td { border: 1px solid #ddd; padding: 12px; text-align: left; vertical-align: middle; }
+                th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
                 th { background-color: #333; color: white; }
                 tr:nth-child(even) { background-color: #fafafa; }
                 img { display: block; margin: 0 auto; }
+                small { color: #666; }
             </style>
         </head>
         <body>
@@ -122,9 +157,9 @@ private fun generateDataHtml(
             <table>
                 <thead>
                     <tr>
-                        <th>$strDate</th>
-                        <th style="text-align: center;">$strPreview</th>
-                        <th>$strResult</th>
+                        <th style="width: 25%;">$strDate</th>
+                        <th style="width: 25%; text-align: center;">$strPreview</th>
+                        <th style="width: 50%;">$strResult</th>
                     </tr>
                 </thead>
                 <tbody>

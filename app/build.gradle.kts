@@ -120,6 +120,8 @@ dependencies {
     implementation(libs.browser)
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.compiler) // 👈 FONDAMENTALE per i Worker
+    implementation(libs.firebase.appcheck)
+    implementation(libs.firebase.appcheck.debug)
     implementation(libs.androidx.hilt)
     implementation(libs.mediapipe)
     implementation(libs.glide)

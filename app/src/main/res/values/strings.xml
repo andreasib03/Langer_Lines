@@ -100,7 +100,11 @@
     <string name="error_email_not_verified">Verifica la tua email prima di accedere.</string>
     <string name="error_invalid_email">Inserisci un\'email valida.</string>
     <string name="error_password_too_short">La password deve avere almeno 8 caratteri.</string>
-    <string name="error_password_weak">La password deve contenere almeno 8 caratteri, una lettera e un numero.</string>
+    <string name="error_password_weak">La password non rispetta i requisiti di sicurezza.</string>
+    <string name="req_min_chars">Almeno 8 caratteri</string>
+    <string name="req_uppercase">Almeno una lettera maiuscola</string>
+    <string name="req_special_char">Almeno un carattere speciale (!@#$%…)</string>
+    <string name="req_number">Almeno un numero</string>
     <string name="error_age_too_young">Devi avere almeno 13 anni per registrarti.</string>
     <string name="error_age_too_old">Inserisci una data di nascita valida.</string>
     <string name="error_date_format">Formato data non valido. Usa GG/MM/AAAA.</string>
@@ -109,7 +113,12 @@
     <string name="error_gallery_analysis_failed">Analisi galleria non riuscita. Riprova.</string>
     <string name="error_capture_failed">Scatto non riuscito. Riprova.</string>
     <string name="error_image_recovery">Errore nel recupero delle immagini.</string>
+    <string name="error_cache_cleaning">Errore durante la pulizia della cache.</string>
+    <string name="success_cache_cleaning">Pulizia cache completata con successo!</string>
+
     <string name="error_no_email_client">Nessun client email trovato sul dispositivo.</string>
+    <string name="recovery_success_found">Scansione completata: %1$d immagini recuperate!</string>
+    <string name="recovery_success_empty">Scansione completata: nessuna immagine trovata.</string>
 
     <!-- Prevenzione account duplicati -->
     <string name="error_email_exists_google">Esiste già un account con questa email. Accedi con Google.</string>
@@ -284,6 +293,7 @@
     <string name="detail_synced_yes">Sì</string>
     <string name="detail_synced_pending">In attesa</string>
     <string name="detail_synced_error">Errore (immagine non trovata)</string>
+    <string name="retry_sync_button">Riprova sincronizzazione</string>
 
     <!-- Tensione -->
     <string name="tension_low">Tensione: Bassa</string>
@@ -548,6 +558,9 @@
     <string name="tutorial_camera_desc">Impara ad acquisire immagini ottimali per l\'analisi delle linee.</string>
     <string name="tutorial_analysis_title">Interpretare i risultati</string>
     <string name="tutorial_analysis_desc">Come leggere la mappa delle linee di Langer e il pannello informativo.</string>
+    <string name="tutorial_onboarding_title">Flusso di avvio applicazione</string>
+    <string name="tutorial_onboarding_desc">Come muoversi per la creazione dell\'account e inizializzazione dell\'app.</string>
+
 
 
     <!-- ══════════════════════════════════════════════════════════════════════
@@ -631,5 +644,7 @@
     <string name="play">Riproduci</string>
     <string name="pause">Pausa</string>
     <string name="stop">Interrompi</string>
+
+
 
 </resources>

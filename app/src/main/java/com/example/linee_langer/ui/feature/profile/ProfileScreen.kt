@@ -243,7 +243,7 @@ fun DataScreen(
             profileViewModel = profileViewModel,
             onDeleted = {
                 showDeleteDialog = false
-                profileViewModel.clearAllData { restartApp(context) }
+                restartApp(context)
             },
             onDismiss = { showDeleteDialog = false }
         )

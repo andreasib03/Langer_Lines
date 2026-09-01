@@ -5,14 +5,26 @@ import com.example.linee_langer.core.database.dao.AnalysisDao
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
 import com.example.linee_langer.core.database.entity.LangerLineEntity
 import com.example.linee_langer.core.database.entity.SkinAnalysisEntity
+import com.example.linee_langer.data.remote.AuthRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 class AnalysisRepository @Inject constructor(
-    private val dao : AnalysisDao
+    private val dao : AnalysisDao,
+    private val authRepository: AuthRepository
 ) {
-    val allAnalyses: Flow<List<AnalysisWithLines>> = dao.getAllAnalysesWithLines()
-    val analysisCount: Flow<Int> = dao.getAnalysisCount()
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val allAnalyses: Flow<List<AnalysisWithLines>> = authRepository.currentUserFlow.flatMapLatest { user ->
+        val uid = user?.uid
+        if (uid.isNullOrBlank()) flowOf(emptyList()) else dao.getAllAnalysesWithLines(uid)
+    }
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val analysisCount: Flow<Int> = authRepository.currentUserFlow.flatMapLatest { user ->
+        val uid = user?.uid
+        if (uid.isNullOrBlank()) flowOf(0) else dao.getAnalysisCount(uid)
+    }
 
     @Transaction
     suspend fun saveFullAnalysis(analysis: SkinAnalysisEntity, lines: List<LangerLineEntity>){
@@ -21,15 +33,26 @@ class AnalysisRepository @Inject constructor(
         dao.insertLines(linesWithId)
     }
 
+    suspend fun resetFailedAnalyses(uid: String) {
+        val failedList = dao.getPermanentlyFailedAnalyses(uid)
+        failedList.forEach { analysis ->
+            dao.updateSyncFailed(analysis.id, false)
+        }
+    }
+
     fun getAnalysisById(id:Long): Flow<AnalysisWithLines?> {
-        return dao.getAnalysisWithLinesById(id)
+        @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+        return authRepository.currentUserFlow.flatMapLatest { user ->
+            val uid = user?.uid
+            if (uid.isNullOrBlank()) flowOf(null) else dao.getAnalysisWithLinesById(id, uid)
+        }
     }
 
     // --- METODI PER SYNC WORKER (Cloud) ---
 
-    suspend fun getUnsyncedAnalyses() = dao.getUnsyncedAnalyses()
+    suspend fun getUnsyncedAnalyses(uid: String) = dao.getUnsyncedAnalyses(uid)
 
-    suspend fun getPermanentlyFailedAnalyses() = dao.getPermanentlyFailedAnalyses()
+    suspend fun getPermanentlyFailedAnalyses(uid: String) = dao.getPermanentlyFailedAnalyses(uid)
 
     suspend fun updateSyncStatus(id: Long, status: Boolean){
         dao.updateSyncStatus(id, status)
@@ -39,7 +62,10 @@ class AnalysisRepository @Inject constructor(
         dao.updateSyncFailed(id, failed)
     }
 
-    suspend fun getLastAnalysisDate() = dao.getLastAnalysisDate()
+    suspend fun getLastAnalysisDate(uid: String) = dao.getLastAnalysisDate(uid)
+
+    suspend fun getUnsyncedCount(uid: String): Int = dao.getUnsyncedCount(uid)
+
 
     // --- METODI PER RECOVERY WORKER ---
 
@@ -47,7 +73,7 @@ class AnalysisRepository @Inject constructor(
      * Recupera tutte le analisi come lista semplice (non Flow)
      * per l'elaborazione rapida nel Worker di recupero immagini.
      */
-    suspend fun getAllAnalysesInternal(): List<SkinAnalysisEntity> = dao.getAllAnalyses()
+    suspend fun getAllAnalysesInternal(uid: String): List<SkinAnalysisEntity> = dao.getAllAnalyses(uid)
 
     /**
      * Aggiorna il percorso del file immagine se viene ritrovato nella cartella Pictures.
@@ -56,8 +82,8 @@ class AnalysisRepository @Inject constructor(
         dao.updateImagePath(id, newPath)
     }
 
-    suspend fun updateImagePathByTimestamp(timestamp: Long, newPath: String) {
-        dao.updateImagePathByTimestamp(timestamp, newPath)
+    suspend fun updateImagePathByTimestamp(timestamp: Long, newPath: String, uid: String) {
+        dao.updateImagePathByTimestamp(timestamp, newPath, uid)
     }
 
 
@@ -66,8 +92,12 @@ class AnalysisRepository @Inject constructor(
         dao.deleteAnalysisEntry(analysis)
     }
 
-    suspend fun deleteAllAnalysis(){
-        dao.deleteAll()
+    suspend fun deleteSyncedAnalysis(uid: String){
+        dao.deleteSyncedAnalyses(uid)
+    }
+
+    suspend fun deleteAllAnalysisForUser(uid: String){
+        dao.deleteAllForUser(uid)
     }
 
     suspend fun restoreFullAnalysis(analysisWithLines: AnalysisWithLines) {
@@ -75,6 +105,10 @@ class AnalysisRepository @Inject constructor(
         val lines = analysisWithLines.lines.map { it.copy(analysisId = restoredId) }
         dao.insertLines(lines)
     }
+
+    suspend fun getLegacyUnassignedCount(): Int = dao.getLegacyUnassignedCount()
+
+    suspend fun assignLegacyRowsToUser(uid: String) = dao.assignLegacyRowsToUser(uid)
 
 
 }

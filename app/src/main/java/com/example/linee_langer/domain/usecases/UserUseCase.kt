@@ -17,30 +17,49 @@ class UserUseCase @Inject constructor(
     private val userPreferencesManager: UserPreferencesManager,
     private val notificationRepository: NotificationRepository
 ) {
+
+    suspend fun getUnsyncedAnalysesCount(): Int {
+        val uid = authRepository.currentUser?.uid ?: return 0
+        return repositoryAnalysis.getUnsyncedCount(uid)
+    }
     suspend fun performFullLogout() {
+        val uid = authRepository.currentUser?.uid
         authRepository.signOut()
-        repositoryAnalysis.deleteAllAnalysis()
+        if (!uid.isNullOrBlank()){
+            repositoryAnalysis.deleteSyncedAnalysis(uid)
+        }
         notificationRepository.deleteAllNotifications()
         userPreferencesManager.clearUserSession()
     }
 
     suspend fun performFullAccountDeletion(): Result<Unit>{
-        val uid = authRepository.currentUser?.uid
+        val uid = authRepository.currentUser?.uid ?: return Result.failure(IllegalStateException("Nessun utente loggato"))
 
-        if(uid != null){
-            try {
-                firebaseRepository.deleteDocument(uid)
-            } catch (e: Exception){
-                logCaughtException(TAG, "Eliminazione documento Firestore fallita (uid=$uid), proseguo comunque", e)
+        try {
+            val localAnalyses = repositoryAnalysis.getAllAnalysesInternal(uid)
+            localAnalyses.forEach { analysisEntity ->
+                firebaseRepository.deleteAnalysisDocument(uid, analysisEntity.date)
             }
+        } catch (e: Exception){
+            logCaughtException(TAG, "Pulizia best-effort delle analisi remote fallita (uid=$uid), proseguo comunque", e)
         }
 
-        repositoryAnalysis.deleteAllAnalysis()
-        notificationRepository.deleteAllNotifications()
-        userPreferencesManager.clearUserSession()
+        try {
+            firebaseRepository.deleteDocument(uid)
+        } catch (e: Exception) {
+            logCaughtException(TAG, "Eliminazione documento Firestore fallita (uid=$uid), proseguo comunque", e)
+        }
 
         val deleteResult = authRepository.deleteCurrentUser()
+        if(deleteResult.isFailure){
+            return deleteResult
+        }
+
+        repositoryAnalysis.deleteAllAnalysisForUser(uid)
+        notificationRepository.deleteAllNotifications()
+        userPreferencesManager.clearUserSession()
         authRepository.signOut()
+
         return deleteResult
     }
 

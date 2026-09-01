@@ -44,6 +44,7 @@ fun GoogleAuthHandler(
                     onExistingUser()
                 } else {
                     // Nuovo utente Google → raccolta dati anagrafici obbligatoria
+                    hasNavigated = true
                     onNewUser()
                 }
             }

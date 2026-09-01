@@ -34,6 +34,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+
+
 @Composable
 fun RegisterScreen(
     authViewModel: AuthViewModel,
@@ -92,7 +94,11 @@ fun RegisterScreen(
         }
     } else null
 
-
+    val currentPassword = authViewModel.password
+    val hasMinLength = AuthValidators.hasMinLength(currentPassword)
+    val hasNumber = AuthValidators.hasNumber(currentPassword)
+    val hasUppercase = AuthValidators.hasUpperCase(currentPassword)
+    val hasSpecialChar = AuthValidators.hasSpecialChar(currentPassword)
 
     val canSubmit =
             emailError == null &&
@@ -103,6 +109,7 @@ fun RegisterScreen(
             formattedDate.isNotBlank() &&
             authViewModel.email.isNotBlank() &&
             authViewModel.password.isNotBlank()
+            AuthValidators.isPasswordValid(currentPassword)
 
     LaunchedEffect(uiState) {
 
@@ -260,6 +267,33 @@ fun RegisterScreen(
             ),
             enabled = !isLoading
         )
+
+        if (currentPassword.isNotEmpty()) {
+            Spacer(Modifier.height(Dimens.Small))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = Dimens.Small),
+                verticalArrangement = Arrangement.spacedBy(Dimens.ExtraSmall)
+            ) {
+                PasswordRequirementItem(
+                    text = stringResource(R.string.req_min_chars),
+                    isMet = hasMinLength
+                )
+                PasswordRequirementItem(
+                    text = stringResource(R.string.req_number),
+                    isMet = hasNumber
+                )
+                PasswordRequirementItem(
+                    text = stringResource(R.string.req_uppercase),
+                    isMet = hasUppercase
+                )
+                PasswordRequirementItem(
+                    text = stringResource(R.string.req_special_char),
+                    isMet = hasSpecialChar
+                )
+            }
+        }
 
         Spacer(Modifier.height(Dimens.Standard))
 
@@ -432,6 +466,28 @@ fun RegisterScreen(
         }
 
         Spacer(Modifier.height(Dimens.XXLarge))
+    }
+}
+
+@Composable
+private fun PasswordRequirementItem(text: String, isMet: Boolean) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Dimens.ExtraSmall)
+    ) {
+        Icon(
+            painter = painterResource(
+                if (isMet) R.drawable.ic_check else R.drawable.ic_close
+            ),
+            contentDescription = null,
+            tint = if (isMet) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(Dimens.IconSmall)
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (isMet) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
+        )
     }
 }
 

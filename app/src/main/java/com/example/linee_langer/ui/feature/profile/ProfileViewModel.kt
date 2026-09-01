@@ -2,6 +2,7 @@ package com.example.linee_langer.ui.feature.profile
 
 import androidx.compose.runtime.getValue
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.linee_langer.BuildConfig
 import com.example.linee_langer.R
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
+import com.example.linee_langer.core.utils.ImageUtils
 import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.data.local.AnalysisRepository
 import com.example.linee_langer.data.local.NotificationRepository
@@ -54,6 +56,9 @@ class ProfileViewModel @Inject constructor(
     @param:ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
+    private val _deleteDataError = MutableStateFlow(false)
+    val deleteDataError: StateFlow<Boolean> = _deleteDataError.asStateFlow()
+
     val fullHistory: Flow<List<AnalysisWithLines>> = repositoryAnalysis.allAnalyses
     private val _userProfile = MutableStateFlow<UserFirebaseModel?>(null)
     val userProfile: StateFlow<UserFirebaseModel?> = _userProfile.asStateFlow()
@@ -61,6 +66,10 @@ class ProfileViewModel @Inject constructor(
     val profileImageUri: StateFlow<Uri?> = userPreferencesManager.profileImageUriFlow
         .map { uriString -> if (!uriString.isNullOrBlank()) uriString.toUri() else null }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private val _profileBitmap = MutableStateFlow<Bitmap?>(null)
+    val profileBitmap: StateFlow<Bitmap?> = _profileBitmap.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -70,8 +79,6 @@ class ProfileViewModel @Inject constructor(
     private val _isEmailVerified = MutableStateFlow(false)
     val isEmailVerified = _isEmailVerified.asStateFlow()
 
-    private val _deleteDataError = MutableStateFlow(false)
-    val deleteDataError: StateFlow<Boolean> = _deleteDataError.asStateFlow()
 
     val isGoogleUser: Boolean by lazy {
         authRepository.currentUser?.providerData?.any {
@@ -103,6 +110,11 @@ class ProfileViewModel @Inject constructor(
 
                 if (profile != null) {
                     _userProfile.value = profile
+                    profile.imageBase64?.let { base64 ->
+                        withContext(Dispatchers.Default) {
+                            _profileBitmap.value = ImageUtils.base64ToBitmap(base64)
+                        }
+                    }
                 } else {
                     loadProfileFromDataStore()
                 }
@@ -110,6 +122,76 @@ class ProfileViewModel @Inject constructor(
             } catch (e: Exception) {
                 logCaughtException(TAG, "Caricamento profilo da Firebase fallito, uso fallback DataStore", e)
                 loadProfileFromDataStore()
+            }
+        }
+    }
+
+    fun updateProfileImageBase64(bitmap: Bitmap, onResult: (Boolean) -> Unit = {}) {
+        val uid = authRepository.currentUser?.uid ?: run {
+            onResult(false)
+            return
+        }
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                // Sfrutta il metodo pulito che hai dentro FirebaseRepository
+                val success = firebaseRepository.saveProfileImageBase64(uid, bitmap)
+
+                if (success) {
+                    _profileBitmap.value = bitmap
+                    _userProfile.value = _userProfile.value?.copy(imageBase64 = ImageUtils.bitmapToBase64(bitmap))
+                }
+
+                _isLoading.value = false
+                onResult(success)
+            } catch (e: Exception) {
+                logCaughtException(TAG, "Salvataggio immagine fallito", e)
+                _isLoading.value = false
+                onResult(false)
+            }
+        }
+    }
+
+    /**
+     * Sovraccarico utile se la UI fornisce una Uri (es. da PhotoPicker/Gallery):
+     * carica la Bitmap dall'Uri e la invia a Firestore.
+     */
+    fun updateProfileImageFromUri(uri: Uri, onResult: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            val bitmap = withContext(Dispatchers.IO) {
+                ImageUtils.uriToBitmap(appContext, uri)
+            }
+            if (bitmap != null) {
+                updateProfileImageBase64(bitmap, onResult)
+            } else {
+                onResult(false)
+            }
+        }
+    }
+
+    fun clearAllData(onComplete: () -> Unit) {
+        _isLoading.value = true
+        val uid = authRepository.currentUser?.uid
+
+        viewModelScope.launch {
+            try {
+                if (uid != null) {
+                    firebaseRepository.deleteDocument(uid)
+                    repositoryAnalysis.deleteAllAnalysisForUser(uid)
+                }
+                notificationRepository.deleteAllNotifications()
+                userPreferencesManager.clearUserSession()
+                _userProfile.value = null
+                _profileBitmap.value = null
+
+                authRepository.signOut()
+                _isLoading.value = false
+                onComplete()
+            } catch (e: Exception) {
+                logCaughtException(TAG, "Cancellazione completa dati utente fallita (uid=$uid)", e)
+                _isLoading.value = false
+                _deleteDataError.value = true
             }
         }
     }
@@ -190,39 +272,6 @@ class ProfileViewModel @Inject constructor(
             val success = authRepository.sendVerificationEmail()
             _isLoading.value = false
             onResult(success)
-        }
-    }
-
-    fun clearAllData(onComplete: () -> Unit) {
-        // 1. Attiva un eventuale indicatore di caricamento nella UI
-        _isLoading.value = true
-        val uid = authRepository.currentUser?.uid
-
-        viewModelScope.launch {
-            try {
-                if(uid != null){
-                    // 2. Cancella il documento da Firestore PRIMA del sign out (necessario per le regole di autenticazione)
-                    firebaseRepository.deleteDocument(uid)
-                }
-
-                // 3. Svuota il database locale Room e le SharedPreferences/DataStore
-                repositoryAnalysis.deleteAllAnalysis()
-                notificationRepository.deleteAllNotifications()
-                userPreferencesManager.clearUserSession()
-                // 4. Reset dello stato della UI del profilo
-                _userProfile.value = null
-
-                // 5. Effettua il sign out da Firebase Auth (Scollega l'utente)
-                authRepository.signOut()
-                // 6. Fine del caricamento e navigazione alla schermata di Login/Onboarding
-                _isLoading.value = false
-                onComplete()
-
-            } catch (e: Exception) {
-                logCaughtException(TAG, "Cancellazione completa dati utente fallita (uid=$uid)", e)
-                _isLoading.value = false
-                _deleteDataError.value = true
-            }
         }
     }
 

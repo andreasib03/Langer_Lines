@@ -1,6 +1,7 @@
 package com.example.linee_langer.ui.feature.history.detail
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -51,7 +54,10 @@ import com.example.linee_langer.ui.theme.appColors
  * vengono duplicati altrove nell'app.
  */
 @Composable
-fun AnalysisInfoPanel(data: AnalysisWithLines) {
+fun AnalysisInfoPanel(
+    data: AnalysisWithLines,
+    onRetrySync: () -> Unit = {}
+) {
 
     val tensionLevel = remember(data.lines) {
         TensionLevel.fromLines(data.lines)
@@ -134,7 +140,7 @@ fun AnalysisInfoPanel(data: AnalysisWithLines) {
 
         Spacer(modifier = Modifier.height(Dimens.Standard))
 
-        // Sezione dettagli tecnici — espandibile, qui e solo qui vivono i dati "grezzi"
+        // Sezione dettagli tecnici — espandibile
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -154,7 +160,7 @@ fun AnalysisInfoPanel(data: AnalysisWithLines) {
                         fontWeight = FontWeight.SemiBold,
                         color = colorScheme.onSurfaceVariant
                     )
-                    val rotation by androidx.compose.animation.core.animateFloatAsState(
+                    val rotation by animateFloatAsState(
                         targetValue = if (showTechnicalDetails) 90f else 0f,
                         label = "chevronRotation"
                     )
@@ -186,14 +192,37 @@ fun AnalysisInfoPanel(data: AnalysisWithLines) {
                             label = stringResource(R.string.analysis_info_body_part),
                             value = bodyLabel
                         )
+                        // Riga Stato Sincronizzazione con click per retry se in errore
+                        val syncValue = when {
+                            data.analysis.isSynced -> stringResource(R.string.detail_synced_yes)
+                            data.analysis.syncFailed -> stringResource(R.string.detail_synced_error)
+                            else -> stringResource(R.string.detail_synced_pending)
+                        }
+
                         TechnicalInfoRow(
                             label = stringResource(R.string.detail_synced),
-                            value = when {
-                                data.analysis.isSynced -> stringResource(R.string.detail_synced_yes)
-                                data.analysis.syncFailed -> stringResource(R.string.detail_synced_error)
-                                else -> stringResource(R.string.detail_synced_pending)
-                            }
+                            value = syncValue,
+                            isError = data.analysis.syncFailed,
+                            onClick = if (data.analysis.syncFailed) onRetrySync else null
                         )
+                        if (data.analysis.syncFailed) {
+                            Spacer(modifier = Modifier.height(Dimens.Medium))
+                            Button(
+                                onClick = onRetrySync,
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = colorScheme.errorContainer,
+                                    contentColor = colorScheme.onErrorContainer
+                                ),
+                                shape = RoundedCornerShape(Dimens.RadiusMedium)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.retry_sync_button),
+                                    style = typography.labelLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -202,15 +231,34 @@ fun AnalysisInfoPanel(data: AnalysisWithLines) {
 }
 
 @Composable
-private fun TechnicalInfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
+private fun TechnicalInfoRow(
+    label: String,
+    value: String,
+    isError: Boolean = false,
+    onClick: (() -> Unit)? = null
+) {
+    val modifier = if (onClick != null) {
+        Modifier
             .fillMaxWidth()
-            .padding(vertical = Dimens.ExtraSmall),
+            .clickable { onClick() }
+            .padding(vertical = Dimens.ExtraSmall)
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = Dimens.ExtraSmall)
+    }
+
+    Row(
+        modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = label, style = typography.bodySmall, color = colorScheme.onSurfaceVariant)
-        Text(text = value, style = typography.bodySmall, fontWeight = FontWeight.SemiBold, color = colorScheme.onSurface)
+        Text(
+            text = value,
+            style = typography.bodySmall,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isError) colorScheme.error else colorScheme.onSurface
+        )
     }
 }
 

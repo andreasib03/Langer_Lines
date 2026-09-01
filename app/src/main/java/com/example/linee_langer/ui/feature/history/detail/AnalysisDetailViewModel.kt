@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
 import com.example.linee_langer.data.local.AnalysisRepository
+import com.example.linee_langer.worker.SyncScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AnalysisDetailViewModel @Inject constructor(
     private val repository: AnalysisRepository,
+    private val syncScheduler: SyncScheduler,
     savedStateHandle: SavedStateHandle
 ): ViewModel(){
 
@@ -27,5 +29,9 @@ class AnalysisDetailViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+
+    fun retrySync(){
+        syncScheduler.scheduleFullSync(forceIfPending = true)
+    }
 
 }

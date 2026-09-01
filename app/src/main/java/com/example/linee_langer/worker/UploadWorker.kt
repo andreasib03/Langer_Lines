@@ -15,18 +15,6 @@ import androidx.work.workDataOf
 import com.example.linee_langer.core.utils.WorkerUtils.isRemoteUrl
 import com.example.linee_langer.core.utils.logCaughtException
 
-/**
- * Carica su Firebase Storage le immagini delle analisi non ancora sincronizzate,
- * poi aggiorna il campo imagePath nel DB locale con l'URL remoto.
- *
- * Va schedulato PRIMA di SyncWorker, oppure SyncWorker può schedularlo come
- * prerequisito tramite WorkManager chain:
- *
- *   WorkManager.getInstance(context)
- *       .beginUniqueWork("Upload", ExistingWorkPolicy.KEEP, uploadRequest)
- *       .then(syncRequest)
- *       .enqueue()
- */
 
 private const val TAG = "UploadWorker"
 @HiltWorker
@@ -43,14 +31,11 @@ class UploadWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result {
-        val uid = authRepository.currentUser?.uid
-        if (uid.isNullOrBlank()) {
-            return Result.failure()
-        }
+        val uid = authRepository.currentUser?.uid ?: return Result.failure()
 
         return try {
             // 1. Recupera solo le analisi non sincronizzate (stesso filtro di SyncWorker)
-            val pending = analysisRepo.getUnsyncedAnalyses()
+            val pending = analysisRepo.getUnsyncedAnalyses(uid)
 
             if (pending.isEmpty()) {
                 return Result.success(
@@ -83,15 +68,6 @@ class UploadWorker @AssistedInject constructor(
                     return@forEach
                 }
 
-                val remoteUrl = firebaseRepo.uploadSkinImage(uid, imageUri)
-
-                if(remoteUrl != null) {
-                    // 3. Aggiorna il DB locale con l'URL di Firebase
-                    analysisRepo.updateImagePath(analysis.id, remoteUrl)
-                    successfulIds.add(analysis.id)
-                } else {
-                    atLeastOneFailed = true
-                }
             }
 
             val outputData = workDataOf(
@@ -106,7 +82,7 @@ class UploadWorker @AssistedInject constructor(
 
         } catch (e: Exception) {
             logCaughtException(TAG, "Upload analisi non sincronizzate fallito (uid=$uid)", e)
-            Result.retry()
+            if (runAttemptCount >= 2) Result.failure() else Result.retry()
         }
     }
 
@@ -117,7 +93,20 @@ class UploadWorker @AssistedInject constructor(
      */
     private fun uriIsAccessible(uri: Uri): Boolean {
         return try {
-            applicationContext.contentResolver.openInputStream(uri)?.use { true } ?: false
+            when (uri.scheme){
+                "content" -> {
+                    applicationContext.contentResolver.openInputStream(uri)?.use { true } ?: false
+                }
+
+                "file", null -> {
+                    val path = uri.path ?: uri.toString()
+                    val file = java.io.File(path)
+                    file.exists() && file.canRead()
+                }
+
+                else -> false
+            }
+
         } catch (e: Exception) {
             logCaughtException(TAG, "URI locale non più accessibile (uri=$uri)", e)
             false

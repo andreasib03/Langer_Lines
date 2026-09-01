@@ -1,6 +1,7 @@
 package com.example.linee_langer.ui.feature.settings
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -49,7 +50,6 @@ import com.example.linee_langer.R
 import com.example.linee_langer.ui.feature.home.components.LangerInfoDialog
 import com.example.linee_langer.ui.shared.components.SupportDialog
 import com.example.linee_langer.ui.theme.locale.SupportedLocale
-import com.example.linee_langer.ui.shared.utils.ChevronRightIcon
 import com.example.linee_langer.ui.shared.utils.VersionFooter
 import com.example.linee_langer.ui.shared.utils.launchSupportEmail
 import com.example.linee_langer.ui.feature.profile.ProfileViewModel
@@ -59,7 +59,8 @@ import com.example.linee_langer.ui.feature.settings.components.SettingsSection
 import com.example.linee_langer.ui.theme.Dimens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
+import kotlin.time.Duration.Companion.milliseconds
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel(),
@@ -77,15 +78,13 @@ fun SettingsScreen(
     var showEmailDialog by remember { mutableStateOf(false) }
     var showVideoDialog by remember { mutableStateOf(false)}
 
-    // Cambiare lingua forza Android a ricreare l'Activity per applicare le nuove risorse:
-    // questo overlay copre il breve istante di transizione con un feedback chiaro,
-    // invece di lasciare che l'utente veda un flash a schermo nero.
+    val recoveryState by settingsViewModel.recoveryState.collectAsState()
     var pendingLocale by remember { mutableStateOf<SupportedLocale?>(null) }
     val isChangingLocale = pendingLocale != null
 
     LaunchedEffect(pendingLocale) {
         val locale = pendingLocale ?: return@LaunchedEffect
-        delay(200) // lascia disegnare almeno un frame dell'overlay prima della ricreazione
+        delay(200.milliseconds) // lascia disegnare almeno un frame dell'overlay prima della ricreazione
         settingsViewModel.setLocale(locale)
     }
 
@@ -98,7 +97,52 @@ fun SettingsScreen(
     val recoveryPermissionDeniedMessage = stringResource(R.string.recovery_permission_denied)
     val cacheCleanStartedMessage = stringResource(R.string.cache_clean_started)
 
+    val scanCompleted = stringResource(R.string.recovery_success_empty)
+    val errorImageRecovery = stringResource(R.string.error_image_recovery)
+
+    val cacheCleaningError = stringResource(R.string.error_cache_cleaning)
+    val cacheCleaningSuccess = stringResource(R.string.success_cache_cleaning)
+
+
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(recoveryState) {
+        when (val state = recoveryState) {
+            is SettingsViewModel.RecoveryState.Success -> {
+                val message = if (state.count > 0) {
+                    context.getString(R.string.recovery_success_found, state.count)
+                } else {
+                    scanCompleted
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                settingsViewModel.resetRecoveryState()
+            }
+            is SettingsViewModel.RecoveryState.Error -> {
+                Toast.makeText(context,errorImageRecovery , Toast.LENGTH_SHORT).show()
+                settingsViewModel.resetRecoveryState()
+            }
+            else -> {}
+        }
+    }
+
+    val cacheCleanState by settingsViewModel.cacheCleanState.collectAsState()
+
+    LaunchedEffect(cacheCleanState) {
+        when (cacheCleanState) {
+            is SettingsViewModel.CacheCleanState.Success -> {
+                Toast.makeText(context, cacheCleaningSuccess, Toast.LENGTH_SHORT).show()
+                settingsViewModel.resetCacheCleanState()
+            }
+            is SettingsViewModel.CacheCleanState.Error -> {
+                Toast.makeText(context, cacheCleaningError , Toast.LENGTH_SHORT).show()
+                settingsViewModel.resetCacheCleanState()
+            }
+            else -> {}
+        }
+    }
+
+
+
     val scope = rememberCoroutineScope()
 
     val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -218,11 +262,8 @@ fun SettingsScreen(
                             subtitle = stringResource(R.string.settings_auto_clean_description),
                             icon = R.drawable.ic_memory,
                             onClick = {
-                                scope.launch {
-                                    settingsViewModel.clearCache() // Funzione suspend
-                                    Toast.makeText(context, cacheCleanStartedMessage, Toast.LENGTH_SHORT)
-                                        .show()
-                                }
+                                Toast.makeText(context, cacheCleanStartedMessage, Toast.LENGTH_SHORT).show()
+                                settingsViewModel.clearCache()
                             }
                         )
                     }
@@ -263,12 +304,7 @@ fun SettingsScreen(
                             title = stringResource(R.string.settings_recovery_image),
                             subtitle = stringResource(R.string.settings_recovery_image_desc),
                             icon = R.drawable.ic_retrieve_image,
-                            onClick = {
-                                launcher.launch(permissionsToRequest)
-                                settingsViewModel.triggerImageRecovery()
-                                Toast.makeText(context, recoveryScanStartedMessage, Toast.LENGTH_SHORT)
-                                    .show()
-                            }
+                            onClick = { launcher.launch(permissionsToRequest) }
                         )
                     }
                 }

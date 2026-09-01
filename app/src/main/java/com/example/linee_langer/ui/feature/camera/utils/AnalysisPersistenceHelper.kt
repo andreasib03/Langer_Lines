@@ -7,6 +7,7 @@ import com.example.linee_langer.core.utils.toEntity
 import com.example.linee_langer.data.local.AnalysisRepository
 import com.example.linee_langer.domain.models.LangerLine
 import com.example.linee_langer.core.utils.saveBitmapToGallery
+import com.example.linee_langer.data.remote.AuthRepository
 import com.example.linee_langer.domain.models.BodyPartIds
 import com.example.linee_langer.domain.models.TensionLevel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -19,7 +20,8 @@ import javax.inject.Singleton
 @Singleton
 class AnalysisPersistenceHelper @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val analysisRepository: AnalysisRepository
+    private val analysisRepository: AnalysisRepository,
+    private val authRepository: AuthRepository
 ) {
 
     /**
@@ -51,12 +53,14 @@ class AnalysisPersistenceHelper @Inject constructor(
         lines: List<LangerLine>,
         bodyPartId: String
     ) = withContext(Dispatchers.IO) {
+        val uid = authRepository.currentUser?.uid.orEmpty()
         val effectivePartId = bodyPartId.ifBlank { BodyPartIds.DEFAULT }
         val analysis = SkinAnalysisEntity(
             date = date,
             bodyPartId = effectivePartId,
             imagePath = path,
-            resultSummary = buildResultSummary(lines, effectivePartId)
+            resultSummary = buildResultSummary(lines, effectivePartId),
+            userId = uid
         )
         val entities = lines.map { it.toEntity() }
         analysisRepository.saveFullAnalysis(analysis, entities)

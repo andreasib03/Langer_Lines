@@ -4,6 +4,7 @@ import com.example.linee_langer.core.database.dao.AnalysisDao
 import com.example.linee_langer.core.database.dao.NotificationDAO
 import com.example.linee_langer.data.local.AnalysisRepository
 import com.example.linee_langer.data.local.NotificationRepository
+import com.example.linee_langer.data.remote.AuthRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,7 +22,7 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideAnalysisRepository(dao: AnalysisDao): AnalysisRepository {
-        return AnalysisRepository(dao)
+    fun provideAnalysisRepository(dao: AnalysisDao, authRepository: AuthRepository): AnalysisRepository {
+        return AnalysisRepository(dao, authRepository)
     }
 }

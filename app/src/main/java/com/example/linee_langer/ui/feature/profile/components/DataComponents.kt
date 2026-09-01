@@ -80,7 +80,7 @@ fun DataManagementCard(
             SettingsRow(
                 title = stringResource(R.string.export),
                 subtitle = stringResource(R.string.download_export),
-                icon = R.drawable.ic_home, // download icon
+                icon = R.drawable.ic_save, // download icon
                 onClick = onExportData
             )
 
@@ -90,7 +90,7 @@ fun DataManagementCard(
             SettingsRow(
                 title = stringResource(R.string.delete),
                 subtitle = stringResource(R.string.description_delete),
-                icon = R.drawable.ic_star, // delete icon
+                icon = R.drawable.ic_trash, // delete icon
                 color = MaterialTheme.colorScheme.error,
                 onClick = onDeleteAll
             )

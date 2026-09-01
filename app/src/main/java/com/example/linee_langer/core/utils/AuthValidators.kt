@@ -13,8 +13,13 @@ object AuthValidators {
     fun isEmailValid(email: String): Boolean =
         email.isNotBlank() && EMAIL_REGEX.matches(email)
 
+    fun hasMinLength(password: String): Boolean = password.length >= 8
+    fun hasUpperCase(password: String): Boolean = password.any {it.isUpperCase()}
+    fun hasSpecialChar(password: String): Boolean = password.any {!it.isLetterOrDigit()}
+    fun hasNumber(password: String): Boolean = password.any {it.isDigit()}
+
     fun isPasswordValid(password: String): Boolean =
-        password.length >= 8 && password.any { it.isLetter() } && password.any { it.isDigit() }
+        hasMinLength(password) && hasUpperCase(password) && hasSpecialChar(password) && hasNumber(password)
 
     fun validateBirthDate(birthDate: String): AgeValidationResult {
         return try {

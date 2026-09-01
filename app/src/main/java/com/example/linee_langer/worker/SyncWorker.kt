@@ -29,9 +29,9 @@ class SyncWorker @AssistedInject constructor(
         val uploadedIds = inputData.getLongArray(UploadWorker.KEY_UPLOADED_IDS)
 
         val analysesToSync = if (uploadedIds != null && uploadedIds.isNotEmpty()) {
-            analysisRepo.getUnsyncedAnalyses().filter { it.id in uploadedIds }
+            analysisRepo.getUnsyncedAnalyses(uid).filter { it.id in uploadedIds }
         } else {
-            analysisRepo.getUnsyncedAnalyses().filter { isRemoteUrl(it.imagePath) }
+            analysisRepo.getUnsyncedAnalyses(uid).filter { isRemoteUrl(it.imagePath) }
         }
 
         if (analysesToSync.isEmpty()) {
@@ -40,9 +40,11 @@ class SyncWorker @AssistedInject constructor(
 
         return try {
             var allSynced = true
+
             analysesToSync.forEach { analysis ->
                 // Se non carichi l'immagine, assicurati di caricare i dati corretti
                 if (!isRemoteUrl(analysis.imagePath)) {
+                    analysisRepo.updateSyncFailed(analysis.id, true)
                     allSynced = false
                     return@forEach
                 }
@@ -51,18 +53,25 @@ class SyncWorker @AssistedInject constructor(
 
                 if (success) {
                     analysisRepo.updateSyncStatus(analysis.id, true)
+                    analysisRepo.updateSyncFailed(analysis.id, false)
                 } else {
                     allSynced = false
+                    if (runAttemptCount >= 2) {
+                        analysisRepo.updateSyncFailed(analysis.id, true)
+                    }
                 }
             }
 
-            if (allSynced)
+            if (allSynced) {
                 Result.success()
-            else
+            } else if (runAttemptCount < 2){
                 Result.retry()
+            } else {
+                Result.failure()
+            }
         } catch (e: Exception) {
             logCaughtException(TAG, "Sync analisi non sincronizzate fallita (uid=$uid)", e)
-            Result.retry()
+            if (runAttemptCount >= 2) Result.failure() else Result.retry()
         }
     }
 }

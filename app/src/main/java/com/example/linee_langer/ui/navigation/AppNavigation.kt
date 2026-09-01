@@ -93,14 +93,21 @@ fun AppNavigation(startDestination: String) {
                                 label = { Text(screen.title) },
                                 selected = currentRoute == screen.route,
                                 onClick = {
-                                    if (currentRoute != screen.route) {
-                                        navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
+                                    navController.navigate(screen.route) {
+                                        // Cancella lo stack fino all'inizio del grafico principali
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
                                         }
+                                        // Evita di creare doppie istanze della stessa schermata
+                                        launchSingleTop = true
+
+
+                                        restoreState = true
+
+                                    }
+
+                                    if (currentRoute == Screen.Data.route && screen.route == Screen.Settings.route) {
+                                        navController.popBackStack(Screen.Settings.route, inclusive = false)
                                     }
                                 }
                             )
@@ -130,9 +137,8 @@ fun AppNavigation(startDestination: String) {
                     val authViewModel: AuthViewModel = hiltViewModel()
                     LoginScreen(
                         authViewModel = authViewModel,
-                        onAuthSuccess = { isExistingUser, _ ->
-                            val destination = if (isExistingUser) Screen.Home.route else Screen.OnBoarding.route
-                            navController.navigate(destination) {
+                        onAuthSuccess = { _, _ ->
+                            navController.navigate(Screen.Home.route) {
                                 popUpTo(Screen.Welcome.route) { inclusive = true }
                             }
                         },
@@ -265,9 +271,7 @@ fun AppNavigation(startDestination: String) {
                     composable(Screen.EmailVerification.route) { entry ->
                         val authViewModel: AuthViewModel = entry.sharedViewModel(navController)
                         val onBoardingViewModel: OnBoardingViewModel = entry.sharedViewModel(navController)
-                        val flow = entry.arguments?.getString("flow") ?: "email"
                         EmailVerificationScreen(
-                            flow = flow,
                             authViewModel = authViewModel,
                             onVerified = {
                                 // FIX: importa i dati pending nell'OnBoardingViewModel

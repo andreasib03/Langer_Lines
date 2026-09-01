@@ -1,0 +1,229 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 11,
+    "identityHash": "16c52e5a4b3e835073c1638799b7e202",
+    "entities": [
+      {
+        "tableName": "notifications",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `isRead` INTEGER NOT NULL, `targetRoute` TEXT, `insertedAtMs` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isRead",
+            "columnName": "isRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetRoute",
+            "columnName": "targetRoute",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "insertedAtMs",
+            "columnName": "insertedAtMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "skin_analyses",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `bodyPartId` TEXT NOT NULL, `imagePath` TEXT NOT NULL, `resultSummary` TEXT NOT NULL, `isSynced` INTEGER NOT NULL, `syncFailed` INTEGER NOT NULL, `userId` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bodyPartId",
+            "columnName": "bodyPartId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imagePath",
+            "columnName": "imagePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resultSummary",
+            "columnName": "resultSummary",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isSynced",
+            "columnName": "isSynced",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncFailed",
+            "columnName": "syncFailed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_skin_analyses_date",
+            "unique": false,
+            "columnNames": [
+              "date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_skin_analyses_date` ON `${TABLE_NAME}` (`date`)"
+          },
+          {
+            "name": "index_skin_analyses_userId",
+            "unique": false,
+            "columnNames": [
+              "userId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_skin_analyses_userId` ON `${TABLE_NAME}` (`userId`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "langer_lines",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `analysisId` INTEGER NOT NULL, `startX` REAL NOT NULL, `startY` REAL NOT NULL, `endX` REAL NOT NULL, `endY` REAL NOT NULL, `intensity` REAL NOT NULL, FOREIGN KEY(`analysisId`) REFERENCES `skin_analyses`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "analysisId",
+            "columnName": "analysisId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startX",
+            "columnName": "startX",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startY",
+            "columnName": "startY",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endX",
+            "columnName": "endX",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endY",
+            "columnName": "endY",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intensity",
+            "columnName": "intensity",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_langer_lines_analysisId",
+            "unique": false,
+            "columnNames": [
+              "analysisId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_langer_lines_analysisId` ON `${TABLE_NAME}` (`analysisId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "skin_analyses",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "analysisId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '16c52e5a4b3e835073c1638799b7e202')"
+    ]
+  }
+}

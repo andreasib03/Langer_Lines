@@ -9,6 +9,7 @@ import com.example.linee_langer.core.utils.logCaughtException
 import com.example.linee_langer.data.local.AnalysisRepository
 import com.example.linee_langer.data.local.NotificationRepository
 import com.example.linee_langer.data.local.UserPreferencesManager
+import com.example.linee_langer.data.remote.AuthRepository
 import com.example.linee_langer.ui.navigation.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -23,6 +24,7 @@ class ReminderWorker @AssistedInject constructor(
     private val repository: AnalysisRepository,
     private val notificationRepo: NotificationRepository,
     private val userPreferencesManager: UserPreferencesManager,
+    private val authRepository: AuthRepository
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -30,8 +32,11 @@ class ReminderWorker @AssistedInject constructor(
             val notificationsEnabled = userPreferencesManager.isNotificationEnabled.first()
             if (!notificationsEnabled) return Result.success()
 
+            val uid = authRepository.currentUser?.uid
+            if (uid.isNullOrBlank()) return Result.success()
+
             val nowMs    = System.currentTimeMillis()
-            val lastDate = repository.getLastAnalysisDate() ?: return Result.success()
+            val lastDate = repository.getLastAnalysisDate(uid) ?: return Result.success()
 
             val sevenDaysMs = TimeUnit.DAYS.toMillis(7)
 

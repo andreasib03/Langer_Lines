@@ -4,6 +4,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object MigrationDatabases {
+
     val MIGRATION_1_2 = object : Migration(1,2){
         override fun migrate(db: SupportSQLiteDatabase){
             db.execSQL("""
@@ -39,6 +40,12 @@ object MigrationDatabases {
     val MIGRATION_8_9 = object : Migration(8, 9) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE `skin_analyses` ADD COLUMN `syncFailed` INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
+    val MIGRATION_9_10 = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `skin_analyses` ADD COLUMN `userId` TEXT NOT NULL DEFAULT ''")
         }
     }
 

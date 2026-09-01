@@ -29,7 +29,8 @@ object DatabaseModule {
                 MigrationDatabases.MIGRATION_1_2,
                 MigrationDatabases.MIGRATION_6_7,
                 MigrationDatabases.MIGRATION_7_8,
-                MigrationDatabases.MIGRATION_8_9
+                MigrationDatabases.MIGRATION_8_9,
+                MigrationDatabases.MIGRATION_9_10
             )
             .fallbackToDestructiveMigration()
             .build()

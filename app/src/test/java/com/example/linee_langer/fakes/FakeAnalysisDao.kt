@@ -121,4 +121,16 @@ class FakeAnalysisDao : AnalysisDao {
         countFlow.value = analyses.size
         byIdFlows.forEach { (id, flow) -> flow.value = toAnalysisWithLines(analyses[id]) }
     }
+
+        override suspend fun deleteSyncedAnalyses() {
+            val toRemove = analyses.values.filter { it.isSynced }.map { it.id }
+            toRemove.forEach {
+                analyses.remove(it)
+                linesByAnalysisId.remove(it)
+            }
+            emitState()
+        }
+
+        override suspend fun getUnsyncedCount(): Int = analyses.values.count { !it.isSynced }
+
 }

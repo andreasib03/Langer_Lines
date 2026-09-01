@@ -21,21 +21,22 @@ interface AnalysisDao {
     suspend fun insertLines(lines: List<LangerLineEntity>)
 
     @Transaction
-    @Query("SELECT * FROM skin_analyses WHERE date = :timestamp LIMIT 1")
-    suspend fun getAnalysisByTimestamp(timestamp: Long): SkinAnalysisEntity?
+    @Query("SELECT * FROM skin_analyses WHERE date = :timestamp AND userId = :userId LIMIT 1")
+    suspend fun getAnalysisByTimestamp(timestamp: Long, userId: String): SkinAnalysisEntity?
 
-    @Query("UPDATE skin_analyses SET imagePath = :newPath WHERE date = :timestamp")
-    suspend fun updateImagePathByTimestamp(timestamp: Long, newPath: String)
-    @Transaction
-    @Query("SELECT * FROM skin_analyses ORDER BY date DESC")
-    fun getAllAnalysesWithLines(): Flow<List<AnalysisWithLines>>
-
-    @Query("SELECT COUNT(*) FROM skin_analyses")
-    fun getAnalysisCount(): Flow<Int>
+    @Query("UPDATE skin_analyses SET imagePath = :newPath WHERE date = :timestamp AND userId = :userId")
+    suspend fun updateImagePathByTimestamp(timestamp: Long, newPath: String, userId: String)
 
     @Transaction
-    @Query("SELECT * FROM skin_analyses WHERE id = :id")
-    fun getAnalysisWithLinesById(id: Long): Flow<AnalysisWithLines?>
+    @Query("SELECT * FROM skin_analyses WHERE userId = :userId ORDER BY date DESC")
+    fun getAllAnalysesWithLines(userId: String): Flow<List<AnalysisWithLines>>
+
+    @Query("SELECT COUNT(*) FROM skin_analyses WHERE userId = :userId")
+    fun getAnalysisCount(userId: String): Flow<Int>
+
+    @Transaction
+    @Query("SELECT * FROM skin_analyses WHERE id = :id AND userId = :userId")
+    fun getAnalysisWithLinesById(id: Long, userId: String): Flow<AnalysisWithLines?>
 
     @Delete
     suspend fun deleteAnalysisEntry(analysisId: SkinAnalysisEntity)
@@ -45,11 +46,20 @@ interface AnalysisDao {
     @Query("DELETE FROM skin_analyses")
     suspend fun deleteAll()
 
-    @Query("SELECT * FROM skin_analyses WHERE isSynced = 0 AND syncFailed = 0")
-    suspend fun getUnsyncedAnalyses(): List<SkinAnalysisEntity>
+    @Query("DELETE FROM skin_analyses WHERE userId = :userId")
+    suspend fun deleteAllForUser(userId: String)
 
-    @Query("SELECT * FROM skin_analyses WHERE isSynced = 0 AND syncFailed = 1")
-    suspend fun getPermanentlyFailedAnalyses(): List<SkinAnalysisEntity>
+    @Query("DELETE FROM skin_analyses WHERE isSynced = 1 AND userId = :userId")
+    suspend fun deleteSyncedAnalyses(userId: String)
+
+    @Query("SELECT COUNT(*) FROM skin_analyses WHERE isSynced = 0 AND userId = :userId")
+    suspend fun getUnsyncedCount(userId: String): Int
+
+    @Query("SELECT * FROM skin_analyses WHERE isSynced = 0 AND syncFailed = 0 AND userId = :userId")
+    suspend fun getUnsyncedAnalyses(userId: String): List<SkinAnalysisEntity>
+
+    @Query("SELECT * FROM skin_analyses WHERE isSynced = 0 AND syncFailed = 1 AND userId = :userId")
+    suspend fun getPermanentlyFailedAnalyses(userId: String): List<SkinAnalysisEntity>
 
     @Query("UPDATE skin_analyses SET syncFailed = :failed WHERE id = :analysisId")
     suspend fun updateSyncFailed(analysisId: Long, failed: Boolean)
@@ -57,14 +67,20 @@ interface AnalysisDao {
     @Query("UPDATE skin_analyses SET imagePath = :newPath WHERE id = :analysisId")
     suspend fun updateImagePath(analysisId: Long, newPath: String)
 
-    @Query("SELECT * FROM skin_analyses ORDER BY date DESC")
-    suspend fun getAllAnalyses(): List<SkinAnalysisEntity>
+    @Query("SELECT * FROM skin_analyses WHERE userId = :userId ORDER BY date DESC")
+    suspend fun getAllAnalyses(userId: String): List<SkinAnalysisEntity>
 
     @Query("UPDATE skin_analyses SET isSynced = :status WHERE id = :analysisId")
     suspend fun updateSyncStatus(analysisId: Long, status: Boolean)
 
-    @Query("SELECT MAX(date) FROM skin_analyses")
-    suspend fun getLastAnalysisDate(): Long?
+    @Query("SELECT MAX(date) FROM skin_analyses WHERE userId = :userId")
+    suspend fun getLastAnalysisDate(userId: String): Long?
+
+    @Query("SELECT COUNT(*) FROM skin_analyses WHERE userId = ''")
+    suspend fun getLegacyUnassignedCount(): Int
+
+    @Query("UPDATE skin_analyses SET userId = :userId WHERE userId = ''")
+    suspend fun assignLegacyRowsToUser(userId: String)
 
 
 }

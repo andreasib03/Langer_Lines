@@ -9,7 +9,7 @@ import java.util.Locale
 
 @Entity(
     tableName = "skin_analyses",
-    indices = [Index(value = ["date"])])
+    indices = [Index(value = ["date"]), Index(value = ["userId"])])
 data class SkinAnalysisEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
@@ -18,7 +18,8 @@ data class SkinAnalysisEntity(
     val imagePath: String,
     val resultSummary: String,
     val isSynced: Boolean = false,
-    val syncFailed: Boolean = false
+    val syncFailed: Boolean = false,
+    val userId: String = ""
 )
 
 

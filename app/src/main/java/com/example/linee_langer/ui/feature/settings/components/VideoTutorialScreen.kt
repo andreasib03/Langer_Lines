@@ -65,6 +65,13 @@ val availableTutorials = listOf(
         descriptionRes = R.string.tutorial_analysis_desc,
         rawRes         = R.raw.video_3,
         iconRes        = R.drawable.ic_instruction_analysis      // icona "interpretare i risultati"
+    ),
+    VideoTutorial(
+        id = 4,
+        titleRes = R.string.tutorial_onboarding_title,
+        descriptionRes = R.string.tutorial_onboarding_desc,
+        rawRes = R.raw.video_4,
+        iconRes = R.drawable.ic_onboarding
     )
 )
 

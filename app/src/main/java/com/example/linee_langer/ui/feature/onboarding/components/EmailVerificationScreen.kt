@@ -34,8 +34,6 @@ private const val POLLING_INTERVAL_MS = 4_000L
 private const val RESEND_COOLDOWN_SECONDS = 30
 @Composable
 fun EmailVerificationScreen(
-    // "google" o "email" — determina dove si va dopo la verifica
-    flow: String,
     authViewModel: AuthViewModel,
     onVerified: () -> Unit,        // → Onboarding
     onBack: () -> Unit             // → WelcomeScreen
