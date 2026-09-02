@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import com.example.linee_langer.R
 import com.example.linee_langer.core.utils.AgeValidationResult
 import com.example.linee_langer.core.utils.AuthValidators
+import com.example.linee_langer.ui.feature.onboarding.OnBoardingViewModel
 import com.example.linee_langer.ui.theme.CircleShape
 import com.example.linee_langer.ui.theme.Dimens
 import java.text.SimpleDateFormat
@@ -39,6 +40,7 @@ import java.util.Locale
 @Composable
 fun RegisterScreen(
     authViewModel: AuthViewModel,
+    onBoardingViewModel: OnBoardingViewModel, // Aggiunto per coerenza con flusso Google
     onAuthSuccess: (isExistingUser: Boolean, isGoogleUser: Boolean) -> Unit,
     onRegistrationComplete: () -> Unit,
     onSwitchToLogin: () -> Unit
@@ -108,7 +110,7 @@ fun RegisterScreen(
             lastName.isNotBlank() &&
             formattedDate.isNotBlank() &&
             authViewModel.email.isNotBlank() &&
-            authViewModel.password.isNotBlank()
+            authViewModel.password.isNotBlank() &&
             AuthValidators.isPasswordValid(currentPassword)
 
     LaunchedEffect(uiState) {
@@ -330,6 +332,11 @@ fun RegisterScreen(
                 onDone = {
                     focusManager.clearFocus()
                     if (canSubmit) {
+                        // Salva nel VM di OnBoarding immediatamente (coerenza flusso Google)
+                        onBoardingViewModel.name = firstName
+                        onBoardingViewModel.lastName = lastName
+                        onBoardingViewModel.birthDate = formattedDate
+                        
                         authViewModel.pendingFirstName = firstName
                         authViewModel.pendingLastName  = lastName
                         authViewModel.pendingBirthDate = formattedDate
@@ -411,6 +418,11 @@ fun RegisterScreen(
             onClick = {
                 focusManager.clearFocus()
                 if (canSubmit) {
+                    // Salva nel VM di OnBoarding immediatamente (coerenza flusso Google)
+                    onBoardingViewModel.name = firstName
+                    onBoardingViewModel.lastName = lastName
+                    onBoardingViewModel.birthDate = formattedDate
+
                     authViewModel.pendingFirstName = firstName
                     authViewModel.pendingLastName  = lastName
                     authViewModel.pendingBirthDate = formattedDate

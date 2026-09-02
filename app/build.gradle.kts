@@ -97,9 +97,10 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
-    implementation(libs.firebase.storage)
+
     //noinspection LoginCredentials
     implementation(libs.gms)
+    implementation(libs.gms.base)
     implementation(libs.crop)
     //noinspection LoginCredentials
     implementation(libs.credentials)
@@ -156,6 +157,9 @@ dependencies {
     implementation(libs.androidx.graphics)
     implementation(libs.androidx.datastore.preferences)
     testImplementation(libs.junit)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 

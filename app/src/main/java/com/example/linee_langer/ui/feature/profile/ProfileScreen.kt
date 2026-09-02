@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,17 +18,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme.colorScheme
-
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import com.example.linee_langer.R
 import com.example.linee_langer.ui.shared.components.LangerScaffold
 import com.example.linee_langer.ui.feature.notifications.NotificationViewModel
@@ -38,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.example.linee_langer.domain.exceptions.AppException
 import com.example.linee_langer.ui.feature.home.components.AdviceCategoryCard
 import com.example.linee_langer.ui.feature.home.components.AdviceHeader
 import com.example.linee_langer.ui.feature.profile.components.ConfirmDeleteAllChangeDialog
@@ -258,93 +264,143 @@ fun DataScreen(
     ) { innerPadding ->
 
         val currentProfile = userData
-        if(currentProfile == null){
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(
-                    color = colorScheme.primary
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .background(colorScheme.surface),
-                contentPadding = PaddingValues(Dimens.Standard),
-                verticalArrangement = Arrangement.spacedBy(Dimens.Standard)
-            ) {
-                item {
-                    DataHeaderSection()
+        val isExporting = profileViewModel.isExporting // PUNTO 3 REVIEW: Loader PDF
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (currentProfile == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
-                item {
-                    val profileImage = stringResource(R.string.profile_image_updated)
-                    val profileNoImage = stringResource(R.string.profile_image_no_updated)
-                    val emailChangeFailedMessage = stringResource(R.string.error_wrong_password)
-                    EditableUserInfoCard(
-                        context = context,
-                        name = currentProfile.name,
-                        email = currentProfile.email,
-                        skinType = getSkinTypeDisplayName(currentProfile.skinType),
-                        isEmailEditable = !isGoogleUser,
-                        isEmailVerified = isVerified,
-                        onVerifyClick = {
-                            profileViewModel.sendVerification { success ->
-                                if (success) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = profileImage,
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    }
-                                } else {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = profileNoImage,
-                                            duration = SnackbarDuration.Short
-                                        )
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .background(colorScheme.surface),
+                    contentPadding = PaddingValues(Dimens.Standard),
+                    verticalArrangement = Arrangement.spacedBy(Dimens.Standard)
+                ) {
+                    // ... (resta invariato) ...
+                    item {
+                        DataHeaderSection()
+                    }
+                    item {
+                        val profileImage = stringResource(R.string.profile_image_updated)
+                        val profileNoImage = stringResource(R.string.profile_image_no_updated)
+                        val emailChangeFailedMessage = stringResource(R.string.error_wrong_password)
+                        val credentialsUpdatedMessage = stringResource(R.string.credentials_updated)
+                        val emailAlreadyInUseMessage = stringResource(R.string.error_email_already_in_use)
+                        val wrongPasswordMessage = stringResource(R.string.error_wrong_password)
+
+                        EditableUserInfoCard(
+                            name = currentProfile.name,
+                            email = currentProfile.email,
+                            skinType = getSkinTypeDisplayName(currentProfile.skinType),
+                            isEmailEditable = !isGoogleUser,
+                            isEmailVerified = isVerified,
+                            onVerifyClick = {
+                                profileViewModel.sendVerification { success ->
+                                    if (success) {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = profileImage,
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+                                    } else {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = profileNoImage,
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                        },
-                    ) { newEmail, password ->
-                        profileViewModel.updateEmail(
-                            newEmail = newEmail,
-                            password = password,
-                            onResult = { success ->
-                                if (!success) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = emailChangeFailedMessage,
-                                            duration = SnackbarDuration.Short
-                                        )
+                            },
+                            onCredentialsChange = { newEmail, newPassword, currentPassword ->
+                                profileViewModel.updateCredentials(
+                                    currentPassword = currentPassword,
+                                    newEmail = newEmail,
+                                    newPassword = newPassword,
+                                    onResult = { result ->
+                                        scope.launch {
+                                            result.onSuccess {
+                                                snackbarHostState.showSnackbar(
+                                                    message = credentialsUpdatedMessage,
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }.onFailure { e ->
+                                                val message = when {
+                                                    e is AppException.Authentication.EmailAlreadyExists ->
+                                                        emailAlreadyInUseMessage
+                                                    e is AppException.Authentication.InvalidCredentials ->
+                                                        wrongPasswordMessage
+                                                    e.message?.contains("wrong-password") == true ->
+                                                        wrongPasswordMessage
+                                                    else -> emailChangeFailedMessage
+                                                }
+                                                snackbarHostState.showSnackbar(
+                                                    message = message,
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
+                                        }
                                     }
-                                }
+                                )
                             }
                         )
                     }
-                }
 
-                item {
-                    val skinTypeDisplayName = getSkinTypeDisplayName(currentProfile.skinType)
-                    DataManagementCard(
-                        onExportData = {
-                            if(!profileViewModel.isExporting){
-                                profileViewModel.generateReport(context, currentProfile, history, skinTypeDisplayName)
+                    item {
+                        val skinTypeDisplayName = getSkinTypeDisplayName(currentProfile.skinType)
+                        DataManagementCard(
+                            onExportData = {
+                                if(!profileViewModel.isExporting){
+                                    profileViewModel.generateReport(context, currentProfile, history, skinTypeDisplayName)
+                                }
+                            },
+                            onDeleteAll = {
+                                showDeleteDialog = true
+
                             }
-                        },
-                        onDeleteAll = {
-                            showDeleteDialog = true
+                        )
+                    }
 
-                        }
-                    )
+                    item {
+                        PrivacyPolicyCard()
+                    }
                 }
+            }
 
-                item {
-                    PrivacyPolicyCard()
+            // PUNTO 3 REVIEW: Overlay caricamento PDF
+            if (isExporting) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f))
+                        .clickable(enabled = false) { },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        shape = RoundedCornerShape(Dimens.RadiusMedium),
+                        colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(Dimens.XLarge),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator()
+                            Spacer(Modifier.height(Dimens.Standard))
+                            Text(
+                                stringResource(R.string.saving), // "Salvataggio..."
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -379,7 +435,7 @@ fun AdviceScreen(
                 AdviceCategoryCard(
                     title = stringResource(R.string.routine_massage),
                     description = stringResource(R.string.desc_massage),
-                    icon = R.drawable.ic_star, // Icon right
+                    icon = R.drawable.ic_cura,
                     color = colorScheme.primaryContainer
                 )
             }
@@ -388,7 +444,7 @@ fun AdviceScreen(
                 AdviceCategoryCard(
                     title = stringResource(R.string.hydratation),
                     description = stringResource(R.string.desc_hydratation),
-                    icon = R.drawable.ic_profile,
+                    icon = R.drawable.ic_water,
                     color = colorScheme.secondaryContainer
                 )
             }
@@ -397,7 +453,7 @@ fun AdviceScreen(
                 AdviceCategoryCard(
                     title = stringResource(R.string.protection),
                     description = stringResource(R.string.desc_protection),
-                    icon = R.drawable.ic_profile,
+                    icon = R.drawable.ic_sun,
                     color = colorScheme.secondaryContainer
                 )
             }
@@ -405,7 +461,7 @@ fun AdviceScreen(
                 AdviceCategoryCard(
                     title = stringResource(R.string.lines_massage),
                     description = stringResource(R.string.lines_massage_desc),
-                    icon = R.drawable.ic_profile,
+                    icon = R.drawable.ic_massage,
                     color = colorScheme.secondaryContainer
                 )
             }
@@ -414,7 +470,7 @@ fun AdviceScreen(
                 AdviceCategoryCard(
                     title = stringResource(R.string.detergency),
                     description = stringResource(R.string.detergency_desc),
-                    icon = R.drawable.ic_profile,
+                    icon = R.drawable.ic_detergent,
                     color = colorScheme.secondaryContainer
                 )
             }
@@ -423,7 +479,7 @@ fun AdviceScreen(
                 AdviceCategoryCard(
                     title = stringResource(R.string.eyeliner),
                     description = stringResource(R.string.eyeliner_desc),
-                    icon = R.drawable.ic_profile,
+                    icon = R.drawable.ic_eye,
                     color = colorScheme.secondaryContainer
                 )
             }
@@ -432,7 +488,7 @@ fun AdviceScreen(
                 AdviceCategoryCard(
                     title = stringResource(R.string.water),
                     description = stringResource(R.string.water_desc),
-                    icon = R.drawable.ic_profile,
+                    icon = R.drawable.ic_hydratation,
                     color = colorScheme.secondaryContainer
                 )
             }
@@ -441,7 +497,7 @@ fun AdviceScreen(
                 AdviceCategoryCard(
                     title = stringResource(R.string.massage),
                     description = stringResource(R.string.massage_desc),
-                    icon = R.drawable.ic_profile,
+                    icon = R.drawable.ic_forehead,
                     color = colorScheme.secondaryContainer
                 )
             }

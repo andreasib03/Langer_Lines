@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 11,
-    "identityHash": "16c52e5a4b3e835073c1638799b7e202",
+    "identityHash": "75e2bc156e3444833568ab96dda5052b",
     "entities": [
       {
         "tableName": "notifications",
@@ -62,7 +62,7 @@
       },
       {
         "tableName": "skin_analyses",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `bodyPartId` TEXT NOT NULL, `imagePath` TEXT NOT NULL, `resultSummary` TEXT NOT NULL, `isSynced` INTEGER NOT NULL, `syncFailed` INTEGER NOT NULL, `userId` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` INTEGER NOT NULL, `bodyPartId` TEXT NOT NULL, `imagePath` TEXT NOT NULL, `lineCount` INTEGER NOT NULL, `avgIntensity` REAL NOT NULL, `tensionLevel` TEXT NOT NULL, `resultSummary` TEXT NOT NULL, `isSynced` INTEGER NOT NULL, `syncFailed` INTEGER NOT NULL, `userId` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -85,6 +85,24 @@
           {
             "fieldPath": "imagePath",
             "columnName": "imagePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lineCount",
+            "columnName": "lineCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avgIntensity",
+            "columnName": "avgIntensity",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tensionLevel",
+            "columnName": "tensionLevel",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -223,7 +241,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '16c52e5a4b3e835073c1638799b7e202')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '75e2bc156e3444833568ab96dda5052b')"
     ]
   }
 }

@@ -4,6 +4,8 @@ import app.cash.turbine.test
 import com.example.linee_langer.core.database.entity.SkinAnalysisEntity
 import com.example.linee_langer.data.local.AnalysisRepository
 import com.example.linee_langer.data.local.NotificationRepository
+import com.example.linee_langer.data.remote.AuthRepository
+import com.example.linee_langer.data.remote.FirebaseRepository
 import com.example.linee_langer.fakes.FakeAnalysisDao
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -40,15 +42,24 @@ class HistoryViewModelTest {
     private lateinit var notificationRepo: NotificationRepository
     private lateinit var viewModel: HistoryViewModel
 
+    private lateinit var authRepository: AuthRepository
+
+    private lateinit var firebaseRepository: FirebaseRepository
+
     private val dispatcher = StandardTestDispatcher()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         dao = FakeAnalysisDao()
-        repo = AnalysisRepository(dao)
+        repo = AnalysisRepository(dao, authRepository, firebaseRepository)
         notificationRepo = mockk(relaxed = true)
-        viewModel = HistoryViewModel(repo, notificationRepo)
+        authRepository = mockk(relaxed = true)
+        firebaseRepository = mockk(relaxed = true)
+        viewModel = HistoryViewModel(
+            repo,
+            notificationRepo
+        )
     }
 
     @After
@@ -69,14 +80,14 @@ class HistoryViewModelTest {
         )
 
     @Test
-    fun `caso dati mancanti - storico vuoto emette lista vuota`() = runTest {
+    fun `caso dati mancanti - storico vuoto emette lista vuota`(): Unit = runTest {
         viewModel.history.test {
             assertEquals(emptyList<Any>(), awaitItem())
         }
     }
 
     @Test
-    fun `caso successo - nuova analisi inserita compare nello storico`() = runTest {
+    fun `caso successo - nuova analisi inserita compare nello storico`(): Unit = runTest {
         viewModel.history.test {
             assertEquals(emptyList<Any>(), awaitItem()) // stato iniziale
             insert()
@@ -85,7 +96,7 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `regressione - un aggiornamento isSynced dal worker si riflette nello storico osservato dalla UI`() = runTest {
+    fun `regressione - un aggiornamento isSynced dal worker si riflette nello storico osservato dalla UI`(): Unit = runTest {
         val id = insert(isSynced = false)
 
         viewModel.history.test {
@@ -107,7 +118,7 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `elemento con syncFailed compare nello storico con lo stato distinto, non piu' confuso con in attesa`() = runTest {
+    fun `elemento con syncFailed compare nello storico con lo stato distinto, non piu' confuso con in attesa`(): Unit = runTest {
         insert(isSynced = false, syncFailed = true)
 
         viewModel.history.test {
@@ -120,7 +131,7 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `eliminazione analisi la rimuove dallo storico ed emette evento ShowUndo`() = runTest {
+    fun `eliminazione analisi la rimuove dallo storico ed emette evento ShowUndo`(): Unit = runTest {
         insert()
 
         viewModel.events.test {
@@ -142,7 +153,7 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `restoreAnalysis rimette in storico un elemento eliminato`() = runTest {
+    fun `restoreAnalysis rimette in storico un elemento eliminato`(): Unit = runTest {
         insert()
 
         viewModel.history.test {

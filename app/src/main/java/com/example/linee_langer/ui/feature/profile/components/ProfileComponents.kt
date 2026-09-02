@@ -1,9 +1,7 @@
 package com.example.linee_langer.ui.feature.profile.components
 
-import android.content.Context
 import android.net.Uri
 import android.util.Patterns
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,7 +56,6 @@ import coil.compose.AsyncImage
 import com.example.linee_langer.R
 import com.example.linee_langer.domain.models.SkinTypeIds
 import com.example.linee_langer.ui.theme.Dimens
-import com.example.linee_langer.ui.theme.appColors
 
 
 @Composable
@@ -180,7 +177,7 @@ fun ProfileMenuItem(
     ) {
         Icon(
             painterResource(icon),
-            contentDescription = "",
+            contentDescription = title,
             modifier = Modifier.size(Dimens.XLarge),
             tint = MaterialTheme.colorScheme.primary
         )
@@ -200,7 +197,7 @@ fun ProfileMenuItem(
 
         Icon(
             painterResource(R.drawable.ic_back),
-            contentDescription = "",
+            contentDescription = stringResource(R.string.back),
             modifier = Modifier.size(Dimens.Standard).rotate(180f),
             tint = MaterialTheme.colorScheme.outlineVariant
         )
@@ -230,7 +227,7 @@ fun MainActionCard(onClick: () -> Unit) {
             }
             Icon(
                 painter = painterResource(R.drawable.ic_camera),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.new_scan),
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(Dimens.XXLarge)
             )
@@ -250,32 +247,23 @@ fun getSkinTypeDisplayName(skinTypeId: String?): String {
 }
 @Composable
 fun EditableUserInfoCard(
-    context: Context,
     name: String,
     email: String,
     skinType: String,
     isEmailEditable: Boolean,
     isEmailVerified: Boolean,
     onVerifyClick: () -> Unit,
-    onEmailChange: ((newEmail: String, password: String) -> Unit)?
+    onCredentialsChange: ((newEmail: String?, newPassword: String?, currentPassword: String) -> Unit)?
 ) {
+    var showEditDialog by remember { mutableStateOf(false) }
 
-
-    var tempEmail by remember(email) { mutableStateOf(email) }
-    var showConfirmDialog by remember { mutableStateOf(false) }
-
-    // Validiamo l'email solo se è modificabile
-    val isEmailValid = !isEmailEditable || Patterns.EMAIL_ADDRESS.matcher(tempEmail).matches()
-    val isChanged = tempEmail != email
-
-    if (showConfirmDialog && isEmailEditable && onEmailChange != null) {
-        ConfirmEmailChangeDialog(
-            onDismiss = { showConfirmDialog = false },
-            onConfirm = { password ->
-                Toast.makeText(context, context.getString(R.string.changed_email), Toast.LENGTH_SHORT).show()
-                // Usiamo l'operatore safe call ?.invoke() perché onEmailChange può essere null
-                onEmailChange.invoke(tempEmail, password)
-                showConfirmDialog = false
+    if (showEditDialog && isEmailEditable && onCredentialsChange != null) {
+        EditCredentialsDialog(
+            currentEmail = email,
+            onDismiss = { showEditDialog = false },
+            onConfirm = { newEmail, newPassword, currentPassword ->
+                onCredentialsChange(newEmail, newPassword, currentPassword)
+                showEditDialog = false
             }
         )
     }
@@ -304,19 +292,17 @@ fun EditableUserInfoCard(
                 color = DividerDefaults.color
             )
 
-            // Campo Email (Dinamico: editabile o bloccato)
+            // Campo Email (Sempre Read-Only visivamente, ma con pulsante Modifica se permesso)
             OutlinedTextField(
-                value = tempEmail,
-                onValueChange = { if (isEmailEditable) tempEmail = it },
+                value = email,
+                onValueChange = { },
                 label = { Text(stringResource(R.string.email_)) },
-                enabled = isEmailEditable, // 👈 Blocca l'interazione se l'utente ha Google
-                isError = !isEmailValid && tempEmail.isNotEmpty(),
+                readOnly = true,
+                enabled = true,
                 modifier = Modifier.fillMaxWidth(0.9f),
                 singleLine = true,
                 supportingText = {
-                    if (!isEmailValid && tempEmail.isNotEmpty()) {
-                        Text(stringResource(R.string.email_not_valid), color = MaterialTheme.colorScheme.error)
-                    } else if (!isEmailEditable) {
+                    if (!isEmailEditable) {
                         Text(
                             text = stringResource(R.string.email_google),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -335,31 +321,24 @@ fun EditableUserInfoCard(
                                 linkInteractionListener = { onVerifyClick() }
                             )
                             withLink(link) {
-                                append(stringResource(R.string.send_verification))
+                                append(" " + stringResource(R.string.send_verification))
                             }
                         }
                         Text(text = annotatedString, style = MaterialTheme.typography.bodySmall)
-                    } else {
-                        // 👈 Mantiene lo spazio riservato senza mostrare nulla se tutto è ok
-                        Text(text = "", style = MaterialTheme.typography.bodySmall)
                     }
                 },
                 trailingIcon = {
                     if (isEmailEditable) {
-                        // Se è modificabile ed è cambiata, mostra la spunta di salvataggio
-                        if (isChanged && isEmailValid) {
-                            IconButton(onClick = { showConfirmDialog = true }) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_save), // Sostituisci eventualmente con un'icona di spunta/save
-                                    contentDescription = stringResource(R.string.save),
-                                    tint = MaterialTheme.appColors.syncDone
-                                )
-                            }
+                        IconButton(onClick = { showEditDialog = true }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_save), // Icona edit/penna sarebbe meglio se disponibile
+                                contentDescription = stringResource(R.string.changed_email),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     } else {
-                        // Se NON è modificabile, mostra un'icona di lucchetto o info
                         Icon(
-                            painter = painterResource(R.drawable.ic_lock), // Sostituisci con un ic_lock se ce l'hai
+                            painter = painterResource(R.drawable.ic_lock),
                             contentDescription = stringResource(R.string.not_edible),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
@@ -371,36 +350,64 @@ fun EditableUserInfoCard(
 }
 
 @Composable
-fun ConfirmEmailChangeDialog(
+fun EditCredentialsDialog(
+    currentEmail: String,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (newEmail: String?, newPassword: String?, currentPassword: String) -> Unit
 ) {
-    var password by remember { mutableStateOf("") }
-    // La validazione reale della password avviene lato server in fase di riautenticazione
-    // (vedi AuthRepository.reauthenticateWithPassword in ProfileViewModel.updateEmail).
-    val isPasswordValid = password.length >= 6
+    var newEmail by remember { mutableStateOf(currentEmail) }
+    var newPassword by remember { mutableStateOf("") }
+    var currentPassword by remember { mutableStateOf("") }
+
+    val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()
+    val isFormValid = currentPassword.length >= 6 && isEmailValid
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.confirm_email)) },
+        title = { Text(stringResource(R.string.update_credentials)) },
         text = {
-            Column {
-                Text(stringResource(R.string.confirm_email_question))
-                Spacer(modifier = Modifier.height(Dimens.Standard))
+            Column(verticalArrangement = Arrangement.spacedBy(Dimens.Standard)) {
+                Text(stringResource(R.string.confirm_changes))
+
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text(stringResource(R.string.password)) },
+                    value = newEmail,
+                    onValueChange = { newEmail = it },
+                    label = { Text(stringResource(R.string.new_email)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    isError = !isEmailValid && newEmail.isNotEmpty()
+                )
+
+                OutlinedTextField(
+                    value = newPassword,
+                    onValueChange = { newPassword = it },
+                    label = { Text(stringResource(R.string.new_password)) },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = Dimens.Small))
+
+                OutlinedTextField(
+                    value = currentPassword,
+                    onValueChange = { currentPassword = it },
+                    label = { Text(stringResource(R.string.current_password)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    supportingText = { Text(stringResource(R.string.confirm_email_question)) }
                 )
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(password) },
-                enabled = isPasswordValid
+                onClick = {
+                    val finalEmail = if (newEmail != currentEmail) newEmail else null
+                    val finalPassword = newPassword.ifBlank { null }
+                    onConfirm(finalEmail, finalPassword, currentPassword)
+                },
+                enabled = isFormValid
             ) {
                 Text(stringResource(R.string.confirm))
             }

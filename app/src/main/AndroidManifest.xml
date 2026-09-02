@@ -68,6 +68,10 @@
                 tools:node="remove" />
         </provider>
 
+        <meta-data
+            android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.gms.clearcut_client"
+            android:resource="@xml/com_google_android_gms_clearcut_client_phenotype" />
+
 
     </application>
 

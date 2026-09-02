@@ -7,12 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import com.example.linee_langer.R
@@ -66,9 +67,11 @@ fun AnalysisDetailScreen(
                     ) {
                         AsyncImage(
                             model = data.analysis.imagePath,
-                            contentDescription = data.analysis.bodyPartId,
+                            contentDescription = stringResource(R.string.history_image_desc, data.analysis.bodyPartId),
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(R.drawable.ic_camera), // Icona di fallback mentre carica
+                            error = painterResource(R.drawable.ic_retrieve_image) // Icona che suggerisce il recupero se fallisce
                         )
                         LangerOverlay(
                             lines = data.lines.map { it.toDomainModel() },

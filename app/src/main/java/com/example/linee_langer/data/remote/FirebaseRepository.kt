@@ -96,14 +96,30 @@ class FirebaseRepository @Inject constructor(
         }
     }
 
-    suspend fun uploadAnalysisSync(uid: String, analysis: SkinAnalysisEntity): Boolean {
+    suspend fun uploadAnalysisSync(
+        uid: String,
+        analysis: SkinAnalysisEntity,
+        imageBase64: String?,
+        lines: List<com.example.linee_langer.core.database.entity.LangerLineEntity> = emptyList()
+    ): Boolean {
 
         return try {
             val analysisData = hashMapOf(
+                "analysisId" to analysis.date.toString(), // ID univoco basato su timestamp
+                "userId" to uid,
                 "date" to analysis.date,
                 "bodyPartId" to analysis.bodyPartId,
                 "resultSummary" to analysis.resultSummary,
-                "imagePath" to analysis.imagePath
+                "imageBase64" to imageBase64,
+                "lines" to lines.map {
+                    mapOf(
+                        "startX" to it.startX,
+                        "startY" to it.startY,
+                        "endX" to it.endX,
+                        "endY" to it.endY,
+                        "intensity" to it.intensity
+                    )
+                }
             )
 
             firestore.collection("users")
@@ -131,6 +147,23 @@ class FirebaseRepository @Inject constructor(
         } catch (e: Exception) {
             logCaughtException(TAG, "Eliminazione documento analisi fallita (uid=$uid, date=$date)", e)
             false
+        }
+    }
+
+    /**
+     * Recupera tutte le analisi salvate su Firestore per un determinato utente.
+     */
+    suspend fun getAllRemoteAnalyses(uid: String): List<Map<String, Any>> {
+        return try {
+            val snapshot = firestore.collection("users")
+                .document(uid)
+                .collection("analyses")
+                .get()
+                .await()
+            snapshot.documents.mapNotNull { it.data }
+        } catch (e: Exception) {
+            logCaughtException(TAG, "Recupero analisi remote fallito (uid=$uid)", e)
+            emptyList()
         }
     }
 

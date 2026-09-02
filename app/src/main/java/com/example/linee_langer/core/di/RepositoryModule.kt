@@ -22,7 +22,7 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideAnalysisRepository(dao: AnalysisDao, authRepository: AuthRepository): AnalysisRepository {
-        return AnalysisRepository(dao, authRepository)
+    fun provideAnalysisRepository(dao: AnalysisDao, authRepository: AuthRepository, firebaseRepo: com.example.linee_langer.data.remote.FirebaseRepository): AnalysisRepository {
+        return AnalysisRepository(dao, authRepository, firebaseRepo)
     }
 }

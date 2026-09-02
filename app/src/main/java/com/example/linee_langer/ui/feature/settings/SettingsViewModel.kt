@@ -66,6 +66,49 @@ class SettingsViewModel @Inject constructor(
         _cacheCleanState.value = CacheCleanState.Idle
     }
 
+    sealed interface SyncState {
+        object Idle : SyncState
+        object Loading : SyncState
+        object Success : SyncState
+        object Error : SyncState
+    }
+
+    private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
+    val syncState: StateFlow<SyncState> = _syncState.asStateFlow()
+
+    fun resetSyncState() {
+        _syncState.value = SyncState.Idle
+    }
+
+    fun triggerSync() {
+        viewModelScope.launch {
+            try {
+                _syncState.value = SyncState.Loading
+                val syncId = userUseCase.scheduleSync(force = true)
+                if (syncId != null) {
+                    val context = getApplication<Application>()
+                    WorkManager.getInstance(context)
+                        .getWorkInfoByIdLiveData(syncId)
+                        .asFlow()
+                        .collect { workInfo ->
+                            if (workInfo != null && workInfo.state.isFinished) {
+                                if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                                    _syncState.value = SyncState.Success
+                                } else {
+                                    _syncState.value = SyncState.Error
+                                }
+                            }
+                        }
+                } else {
+                    _syncState.value = SyncState.Error
+                }
+            } catch (e: Exception) {
+                logCaughtException(TAG, "Errore avvio sincronizzazione manuale", e)
+                _syncState.value = SyncState.Error
+            }
+        }
+    }
+
 
 
     private val _currentLocale = MutableStateFlow(localeManager.currentLocale())

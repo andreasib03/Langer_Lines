@@ -93,6 +93,8 @@ fun SettingsScreen(
 
     val autoCleanEnabled by settingsViewModel.isAutoCleanEnabled.collectAsState()
 
+    val syncState by settingsViewModel.syncState.collectAsState()
+
     val recoveryScanStartedMessage = stringResource(R.string.recovery_scan_started)
     val recoveryPermissionDeniedMessage = stringResource(R.string.recovery_permission_denied)
     val cacheCleanStartedMessage = stringResource(R.string.cache_clean_started)
@@ -103,8 +105,24 @@ fun SettingsScreen(
     val cacheCleaningError = stringResource(R.string.error_cache_cleaning)
     val cacheCleaningSuccess = stringResource(R.string.success_cache_cleaning)
 
+    val syncSuccessMessage = stringResource(R.string.sync_done)
+    val syncErrorMessage = stringResource(R.string.error_generic)
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(syncState) {
+        when (syncState) {
+            is SettingsViewModel.SyncState.Success -> {
+                Toast.makeText(context, syncSuccessMessage, Toast.LENGTH_SHORT).show()
+                settingsViewModel.resetSyncState()
+            }
+            is SettingsViewModel.SyncState.Error -> {
+                Toast.makeText(context, syncErrorMessage, Toast.LENGTH_SHORT).show()
+                settingsViewModel.resetSyncState()
+            }
+            else -> {}
+        }
+    }
 
     LaunchedEffect(recoveryState) {
         when (val state = recoveryState) {
@@ -300,6 +318,19 @@ fun SettingsScreen(
 
                 item {
                     SettingsSection(title = stringResource(R.string.settings_recovery)) {
+                        SettingsItem(
+                            title = stringResource(R.string.settings_sync_cloud),
+                            subtitle = stringResource(R.string.settings_sync_cloud_desc),
+                            icon = R.drawable.ic_save, // Usa un'icona di sync o cloud se disponibile
+                            onClick = {
+                                settingsViewModel.triggerSync()
+                                Toast.makeText(context, context.getString(R.string.sync_started), Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = Dimens.Standard),
+                            thickness = Dimens.Thickness
+                        )
                         SettingsItem(
                             title = stringResource(R.string.settings_recovery_image),
                             subtitle = stringResource(R.string.settings_recovery_image_desc),

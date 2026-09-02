@@ -55,11 +55,20 @@ class AnalysisPersistenceHelper @Inject constructor(
     ) = withContext(Dispatchers.IO) {
         val uid = authRepository.currentUser?.uid.orEmpty()
         val effectivePartId = bodyPartId.ifBlank { BodyPartIds.DEFAULT }
+        
+        val avgIntensity = if (lines.isNotEmpty())
+            lines.map { it.intensity }.average().toFloat()
+        else 0f
+        val tensionLevel = TensionLevel.fromAvgIntensity(avgIntensity)
+
         val analysis = SkinAnalysisEntity(
             date = date,
             bodyPartId = effectivePartId,
             imagePath = path,
-            resultSummary = buildResultSummary(lines, effectivePartId),
+            lineCount = lines.size,
+            avgIntensity = avgIntensity,
+            tensionLevel = tensionLevel,
+            resultSummary = buildResultSummary(lines, effectivePartId), // Fallback legacy
             userId = uid
         )
         val entities = lines.map { it.toEntity() }

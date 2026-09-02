@@ -16,7 +16,10 @@ data class SkinAnalysisEntity(
     val date: Long,
     val bodyPartId: String,
     val imagePath: String,
-    val resultSummary: String,
+    val lineCount: Int = 0,
+    val avgIntensity: Float = 0f,
+    val tensionLevel: String = "",
+    val resultSummary: String = "", // Mantenuto per compatibilità JSON se necessario
     val isSynced: Boolean = false,
     val syncFailed: Boolean = false,
     val userId: String = ""

@@ -399,8 +399,11 @@
     <string name="settings_manutentation">Manutenzione</string>
     <string name="settings_24h">Rimuove i file temporanei ogni 24 ore</string>
     <string name="settings_recovery">Recupero</string>
-    <string name="settings_recovery_image">Recupera immagini</string>
+    <string name="settings_recovery_image">Recupera immagini locali</string>
     <string name="settings_recovery_image_desc">Ricollega le foto salvate sul dispositivo</string>
+    <string name="settings_sync_cloud">Sincronizza Cloud</string>
+    <string name="settings_sync_cloud_desc">Scarica analisi mancanti e ricarica i dati</string>
+    <string name="sync_started">Sincronizzazione avviata…</string>
     <string name="recovery_scan_started">Scansione avviata…</string>
     <string name="recovery_permission_denied">Permesso negato. Impossibile recuperare le immagini.</string>
     <string name="cache_clean_started">Pulizia avviata…</string>
@@ -640,6 +643,14 @@
 
     <string name="camera_istructions">Pizzica per zoomare e ruotare e trascina per centrare l\'area</string>
 
+
+    <string name="new_password">Nuova Password (opzionale)</string>
+    <string name="new_email">Nuova Email</string>
+    <string name="current_password">Password attuale</string>
+    <string name="update_credentials">Aggiorna Credenziali</string>
+    <string name="credentials_updated">Credenziali aggiornate con successo!</string>
+    <string name="error_email_already_in_use">Questa email è già associata a un altro account.</string>
+    <string name="confirm_changes">Conferma Modifiche</string>
 
     <string name="play">Riproduci</string>
     <string name="pause">Pausa</string>

@@ -15,6 +15,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import java.util.UUID
+
 @Singleton
 class SyncScheduler @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -22,30 +24,32 @@ class SyncScheduler @Inject constructor(
     private val authRepository: AuthRepository
 ) {
 
-    fun scheduleFullSync(forceIfPending: Boolean = false){
-        val uid = authRepository.currentUser?.uid ?: return
+    fun scheduleFullSync(forceIfPending: Boolean = false): UUID? {
+        val uid = authRepository.currentUser?.uid ?: return null
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val uploadRequest = OneTimeWorkRequestBuilder<UploadWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        val restoreRequest = OneTimeWorkRequestBuilder<RestoreWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        val policy = if (forceIfPending) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.KEEP
 
         CoroutineScope(Dispatchers.IO).launch {
             analysisRepository.resetFailedAnalyses(uid)
-            val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-
-            val uploadRequest = OneTimeWorkRequestBuilder<UploadWorker>()
-                .setConstraints(constraints)
-                .build()
-
-            val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
-                .setConstraints(constraints)
-                .build()
-
-            val policy = if (forceIfPending) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.KEEP
-
-            WorkManager.getInstance(context)
-                .beginUniqueWork("DataUploadSync", policy, uploadRequest)
-                .then(syncRequest)
-                .enqueue()
         }
 
+        WorkManager.getInstance(context)
+            .beginUniqueWork("DataUploadSync", policy, uploadRequest)
+            .then(restoreRequest)
+            .enqueue()
+
+        return restoreRequest.id // Restituiamo l'ID dell'ultimo worker della catena
     }
 }

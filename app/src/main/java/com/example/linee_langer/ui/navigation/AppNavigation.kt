@@ -137,9 +137,20 @@ fun AppNavigation(startDestination: String) {
                     val authViewModel: AuthViewModel = hiltViewModel()
                     LoginScreen(
                         authViewModel = authViewModel,
-                        onAuthSuccess = { _, _ ->
-                            navController.navigate(Screen.Home.route) {
-                                popUpTo(Screen.Welcome.route) { inclusive = true }
+                        onAuthSuccess = { isExistingUser, isGoogle ->
+                            if (isExistingUser) {
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(Screen.Welcome.route) { inclusive = true }
+                                }
+                            } else {
+                                // Se l'utente non ha un profilo Firestore, lo mandiamo alla raccolta dati.
+                                // NON usiamo "google_flow" perché attiverebbe il login Google.
+                                // Usiamo "register_flow" ma saltiamo la registrazione (già fatta) andando a EmailVerification (che poi porta a Onboarding)
+                                // O meglio, andiamo a una destinazione di raccolta dati se necessaria.
+                                // Per ora, se il login ha successo ma manca il profilo, portiamolo all'onboarding.
+                                navController.navigate(Screen.OnBoarding.route) {
+                                    popUpTo(Screen.Welcome.route) { inclusive = true }
+                                }
                             }
                         },
                         onSwitchToRegister = {
@@ -149,23 +160,8 @@ fun AppNavigation(startDestination: String) {
                     )
                 }
 
-                composable(
-                    route = Screen.OnBoarding.route,
-                    exitTransition = {
-                        fadeOut(animationSpec = tween(500)) +
-                                scaleOut(targetScale = 0.8f, animationSpec = tween(500))
-                    }
-                ) {
-                    val onBoardingViewModel: OnBoardingViewModel = hiltViewModel()
-                    OnBoardingScreen(
-                        onBoardingViewModel = onBoardingViewModel,
-                        onFinished = {
-                            navController.navigate("main_flow") {
-                                popUpTo(0) { inclusive = true }
-                            }
-                        }
-                    )
-                }
+                // Rimosso OnBoarding globale per evitare conflitti di rotta e istanze VM doppie
+                // Sarà gestito all'interno dei rispettivi flow (Google/Register) per condividere i dati.
 
                 // ── FLUSSO GOOGLE ─────────────────────────────────────────────────
                 // FIX BUG 1: usiamo un navigation() annidato "google_flow" così
@@ -251,11 +247,20 @@ fun AppNavigation(startDestination: String) {
                 ) {
                     composable(Screen.Register.route) { entry ->
                         val authViewModel: AuthViewModel = entry.sharedViewModel(navController)
+                        val onBoardingViewModel: OnBoardingViewModel = entry.sharedViewModel(navController)
                         RegisterScreen(
                             authViewModel = authViewModel,
-                            onAuthSuccess = { _, _ ->
-                                navController.navigate(Screen.Home.route) {
-                                    popUpTo(Screen.Welcome.route) { inclusive = true }
+                            onBoardingViewModel = onBoardingViewModel,
+                            onAuthSuccess = { isExistingUser, _ ->
+                                if (isExistingUser) {
+                                    navController.navigate(Screen.Home.route) {
+                                        popUpTo(Screen.Welcome.route) { inclusive = true }
+                                    }
+                                } else {
+                                    // Se l'account esiste già ma non ha profilo (collisione recuperata)
+                                    // andiamo all'onboarding DOPO aver importato i dati inseriti nel form
+                                    onBoardingViewModel.importUserData(authViewModel)
+                                    navController.navigate(Screen.OnBoarding.route)
                                 }
                             },
                             onRegistrationComplete = {

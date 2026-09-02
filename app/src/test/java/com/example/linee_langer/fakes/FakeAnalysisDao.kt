@@ -4,6 +4,7 @@ import com.example.linee_langer.core.database.dao.AnalysisDao
 import com.example.linee_langer.core.database.entity.AnalysisWithLines
 import com.example.linee_langer.core.database.entity.LangerLineEntity
 import com.example.linee_langer.core.database.entity.SkinAnalysisEntity
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
@@ -44,22 +45,30 @@ class FakeAnalysisDao : AnalysisDao {
         emitState()
     }
 
-    override suspend fun getAnalysisByTimestamp(timestamp: Long): SkinAnalysisEntity? =
-        analyses.values.firstOrNull { it.date == timestamp }
+    override suspend fun getAnalysisByTimestamp(timestamp: Long, userId: String): SkinAnalysisEntity? =
+        analyses.values.firstOrNull { it.date == timestamp && it.userId == userId}
 
-    override suspend fun updateImagePathByTimestamp(timestamp: Long, newPath: String) {
-        val match = analyses.values.firstOrNull { it.date == timestamp } ?: return
+    override suspend fun updateImagePathByTimestamp(timestamp: Long, newPath: String, userId: String) {
+        val match = analyses.values
+            .firstOrNull { it.date == timestamp && it.userId == userId } ?: return
         analyses[match.id] = match.copy(imagePath = newPath)
         emitState()
     }
 
-    override fun getAllAnalysesWithLines(): kotlinx.coroutines.flow.Flow<List<AnalysisWithLines>> =
+    override fun getAllAnalysesWithLines(userId: String): Flow<List<AnalysisWithLines>> =
         allAnalysesFlow
 
-    override fun getAnalysisCount(): kotlinx.coroutines.flow.Flow<Int> = countFlow
+    override fun getAnalysisCount(userId: String): Flow<Int> = countFlow
 
-    override fun getAnalysisWithLinesById(id: Long): kotlinx.coroutines.flow.Flow<AnalysisWithLines?> =
-        byIdFlows.getOrPut(id) { MutableStateFlow(toAnalysisWithLines(analyses[id])) }
+    override fun getAnalysisWithLinesById(id: Long, userId: String): Flow<AnalysisWithLines?> =
+        byIdFlows.getOrPut(id) {
+            MutableStateFlow(toAnalysisWithLines(analyses[id]?.takeIf { it.userId == userId })) }
+
+    override suspend fun getAnalysisWithLinesByIdSuspend(id: Long, userId: String): AnalysisWithLines? =
+        toAnalysisWithLines(
+            analyses[id]?.takeIf { it.userId == userId }
+        )
+
 
     override suspend fun deleteAnalysisEntry(analysisId: SkinAnalysisEntity) {
         analyses.remove(analysisId.id)
@@ -79,11 +88,26 @@ class FakeAnalysisDao : AnalysisDao {
         emitState()
     }
 
-    override suspend fun getUnsyncedAnalyses(): List<SkinAnalysisEntity> =
-        analyses.values.filter { !it.isSynced && !it.syncFailed }
+    override suspend fun deleteAllForUser(userId: String) {
+        val toRemove = analyses.values
+            .filter { it.userId == userId }
+            .map { it.id }
+        toRemove.forEach {
+            analyses.remove(it)
+            linesByAnalysisId.remove(it)
+        }
+        emitState()
+    }
 
-    override suspend fun getPermanentlyFailedAnalyses(): List<SkinAnalysisEntity> =
-        analyses.values.filter { !it.isSynced && it.syncFailed }
+    override suspend fun getUnsyncedAnalyses(userId: String): List<SkinAnalysisEntity> =
+        analyses.values.filter {
+            it.userId == userId &&
+            !it.isSynced && !it.syncFailed }
+
+    override suspend fun getPermanentlyFailedAnalyses(userId: String): List<SkinAnalysisEntity> =
+        analyses.values.filter {
+            it.userId == userId &&
+            !it.isSynced && it.syncFailed }
 
     override suspend fun updateSyncFailed(analysisId: Long, failed: Boolean) {
         val current = analyses[analysisId] ?: return
@@ -97,8 +121,10 @@ class FakeAnalysisDao : AnalysisDao {
         emitState()
     }
 
-    override suspend fun getAllAnalyses(): List<SkinAnalysisEntity> =
-        analyses.values.sortedByDescending { it.date }
+    override suspend fun getAllAnalyses(userId: String): List<SkinAnalysisEntity> =
+        analyses.values
+            .filter { it.userId == userId }
+            .sortedByDescending { it.date }
 
     override suspend fun updateSyncStatus(analysisId: Long, status: Boolean) {
         val current = analyses[analysisId] ?: return
@@ -106,7 +132,16 @@ class FakeAnalysisDao : AnalysisDao {
         emitState()
     }
 
-    override suspend fun getLastAnalysisDate(): Long? = analyses.values.maxOfOrNull { it.date }
+    override suspend fun getLastAnalysisDate(userId: String): Long? =
+        analyses.values
+            .filter { it.userId == userId }
+            .maxOfOrNull { it.date }
+
+    override suspend fun getLegacyUnassignedCount(): Int {
+        return 0
+    }
+
+    override suspend fun assignLegacyRowsToUser(userId: String) { }
 
     /** Helper di test: legge lo stato corrente di un'analisi per fare asserzioni. */
     fun snapshot(id: Long): SkinAnalysisEntity? = analyses[id]
@@ -122,8 +157,11 @@ class FakeAnalysisDao : AnalysisDao {
         byIdFlows.forEach { (id, flow) -> flow.value = toAnalysisWithLines(analyses[id]) }
     }
 
-        override suspend fun deleteSyncedAnalyses() {
-            val toRemove = analyses.values.filter { it.isSynced }.map { it.id }
+        override suspend fun deleteSyncedAnalyses(userId: String) {
+            val toRemove = analyses.values
+                .filter { it.userId == userId && it.isSynced }
+
+                .map { it.id }
             toRemove.forEach {
                 analyses.remove(it)
                 linesByAnalysisId.remove(it)
@@ -131,6 +169,7 @@ class FakeAnalysisDao : AnalysisDao {
             emitState()
         }
 
-        override suspend fun getUnsyncedCount(): Int = analyses.values.count { !it.isSynced }
+        override suspend fun getUnsyncedCount(userId: String): Int =
+            analyses.values.count { it.userId == userId && !it.isSynced }
 
 }

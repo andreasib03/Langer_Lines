@@ -86,8 +86,6 @@ class AuthRepository @Inject constructor(
             }
 
             Result.success(user)
-        } catch (e: FirebaseAuthUserCollisionException){
-            Result.failure(AppException.Authentication.EmailAlreadyExists("google.com"))
         } catch (e: Exception){
             logCaughtException(TAG, "Login con email fallito", e)
             Result.failure(e)
@@ -167,6 +165,18 @@ class AuthRepository @Inject constructor(
         val user = auth.currentUser ?: return false
         return user.providerData.any {
             it.providerId == GoogleAuthProvider.PROVIDER_ID || it.providerId == "google.com"
+        }
+    }
+
+    suspend fun updatePassword(newPassword: String): Result<Unit> {
+        return try {
+            val user = auth.currentUser
+                ?: return Result.failure(AppException.Authentication.UserNull("Nessun utente"))
+            user.updatePassword(newPassword).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            logCaughtException(TAG, "Aggiornamento password fallito", e)
+            Result.failure(e)
         }
     }
 

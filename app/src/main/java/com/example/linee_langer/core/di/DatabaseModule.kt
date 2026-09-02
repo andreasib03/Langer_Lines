@@ -27,10 +27,13 @@ object DatabaseModule {
         )
             .addMigrations(
                 MigrationDatabases.MIGRATION_1_2,
+                MigrationDatabases.MIGRATION_5_6,
                 MigrationDatabases.MIGRATION_6_7,
                 MigrationDatabases.MIGRATION_7_8,
                 MigrationDatabases.MIGRATION_8_9,
-                MigrationDatabases.MIGRATION_9_10
+                MigrationDatabases.MIGRATION_9_10,
+                MigrationDatabases.MIGRATION_10_11,
+                MigrationDatabases.MIGRATION_11_12
             )
             .fallbackToDestructiveMigration()
             .build()

@@ -187,10 +187,14 @@ fun EmailVerificationScreen(
                 }
 
                 // Torna alla schermata iniziale
-                TextButton(onClick = onBack) {
+                TextButton(
+                    onClick = {
+                        authViewModel.deleteUnverifiedAccount(onBack)
+                    }
+                ) {
                     Text(
-                        text = stringResource(R.string.back_to_welcome),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = stringResource(R.string.email_undo),
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
 

@@ -9,6 +9,7 @@ import com.example.linee_langer.domain.detector.ILangerDetector
 import com.example.linee_langer.domain.detector.LangerDetector
 import com.example.linee_langer.domain.usecases.AnalyzeSkinUseCases
 import com.example.linee_langer.domain.usecases.UserUseCase
+import com.example.linee_langer.worker.SyncScheduler
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,8 +39,16 @@ object DomainModule {
         analysisRepository: AnalysisRepository,
         userPreferencesManager: UserPreferencesManager,
         firebaseRepository: FirebaseRepository,
-        notificationRepository: NotificationRepository
+        notificationRepository: NotificationRepository,
+        syncScheduler: SyncScheduler
     ): UserUseCase {
-        return UserUseCase(authRepository, analysisRepository, firebaseRepository, userPreferencesManager, notificationRepository)
+        return UserUseCase(
+            authRepository,
+            analysisRepository,
+            firebaseRepository,
+            userPreferencesManager,
+            notificationRepository,
+            syncScheduler
+        )
     }
 }

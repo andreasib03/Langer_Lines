@@ -45,14 +45,22 @@ class AuthViewModel @Inject constructor(
     var pendingLastName  by mutableStateOf("")
     var pendingBirthDate by mutableStateOf("")
 
-    fun updateEmail(value: String)    { _email = value.trim() }
+    fun updateEmail(value: String)    { _email = value }
     fun updatePassword(value: String) { _password = value }
 
-    fun resetState() { uiState = AuthUiState.Idle }
+    fun resetState() {
+        uiState = AuthUiState.Idle
+        _email = ""
+        _password = ""
+        pendingFirstName = ""
+        pendingLastName  = ""
+        pendingBirthDate = ""
+    }
 
     // --- LOGIN ---
     fun handleLogin() {
-        if (_email.isBlank() || _password.isBlank()) {
+        val emailToUse = _email.trim()
+        if (emailToUse.isBlank() || _password.isBlank()) {
             uiState = AuthUiState.Error(
                 appContext.getString(R.string.error_fill_all_fields)
             )
@@ -61,7 +69,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 uiState = AuthUiState.Loading
-                authRepository.signInWithEmail(_email, _password)
+                authRepository.signInWithEmail(emailToUse, _password)
                     .onSuccess { user ->
                         if (!authRepository.isEmailVerified()) {
                             uiState = AuthUiState.Error(
@@ -85,22 +93,62 @@ class AuthViewModel @Inject constructor(
 
     // --- REGISTRAZIONE ---
     fun handleRegister() {
-        if (_email.isBlank() || _password.isBlank()) {
+        val emailToUse = _email.trim()
+        if (emailToUse.isBlank() || _password.isBlank()) {
             uiState = AuthUiState.Error(
                 appContext.getString(R.string.error_fill_all_fields)
             )
             return
         }
         viewModelScope.launch {
+            uiState = AuthUiState.Loading
             try {
-                uiState = AuthUiState.Loading
-                authRepository.signUpWithEmail(_email, _password)
-                    .onSuccess {
-                        uiState = AuthUiState.RegistrationPendingVerification
+                // 1. Recupero immediato se già loggato (unverified)
+                val currentUser = authRepository.currentUser
+                if (currentUser != null && currentUser.email == emailToUse && !currentUser.isEmailVerified) {
+                    authRepository.sendVerificationEmail()
+                    uiState = AuthUiState.RegistrationPendingVerification
+                    return@launch
+                }
+
+                // 2. Tentativo creazione account
+                val regResult = authRepository.signUpWithEmail(emailToUse, _password)
+                
+                if (regResult.isSuccess) {
+                    uiState = AuthUiState.RegistrationPendingVerification
+                    return@launch
+                }
+
+                // 3. Gestione errore collisione (account già esistente)
+                val error = regResult.exceptionOrNull()
+                if (error is AppException.Authentication.EmailAlreadyExists) {
+                    val loginResult = authRepository.signInWithEmail(emailToUse, _password)
+                    
+                    if (loginResult.isSuccess) {
+                        val user = loginResult.getOrThrow()
+                        // Se loggato con successo, controlliamo il profilo
+                        checkFirestoreProfileAndProceed(user.uid)
+                    } else {
+                        val loginError = loginResult.exceptionOrNull()
+                        // Se fallisce il login perché non verificato, inviamo email
+                        if (loginError is AppException.Authentication.EmailNotVerified) {
+                            authRepository.sendVerificationEmail()
+                            uiState = AuthUiState.RegistrationPendingVerification
+                        } else {
+                            // Altro errore (es. password errata per l'account esistente)
+                            uiState = AuthUiState.Error(buildErrorMessage(error))
+                        }
                     }
-                    .onFailure { error ->
-                        uiState = AuthUiState.Error(buildErrorMessage(error))
-                    }
+                } else {
+                    // Altro errore di registrazione
+                    uiState = AuthUiState.Error(
+                        error?.localizedMessage ?: appContext.getString(R.string.error_unknown)
+                    )
+                }
+            } catch (e: Exception) {
+                uiState = AuthUiState.Error(
+                    e.localizedMessage ?: appContext.getString(R.string.error_unknown)
+                )
             } finally {
                 _password = ""
             }
@@ -168,6 +216,22 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Elimina l'account corrente se non è verificato.
+     * Utile per "ripulire" account creati per errore o rimasti in sospeso
+     * che impediscono una nuova registrazione pulita.
+     */
+    fun deleteUnverifiedAccount(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val user = authRepository.currentUser
+            if (user != null && !user.isEmailVerified) {
+                authRepository.deleteCurrentUser()
+                resetState()
+                onComplete()
+            }
+        }
+    }
+
     // --- INTERNO ---
     private suspend fun checkFirestoreProfileAndProceed(
         uid: String,
@@ -187,7 +251,7 @@ class AuthViewModel @Inject constructor(
             is AppException.Authentication.EmailAlreadyExists -> when (error.existingProvider){
                 "google.com" -> appContext.getString(R.string.error_email_exists_google)
                 "password"   -> appContext.getString(R.string.error_email_exists_password)
-                else         -> appContext.getString(R.string.error_email_exists_generic)
+                else         -> appContext.getString(R.string.error_email_exists_password) // Default to password prompt for standard collision
             }
             is AppException.Authentication.EmailNotVerified ->
                 appContext.getString(R.string.error_email_not_verified)

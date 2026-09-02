@@ -34,7 +34,7 @@ class OnBoardingViewModel @Inject constructor(
         name      = authViewModel.pendingFirstName
         lastName  = authViewModel.pendingLastName
         birthDate = authViewModel.pendingBirthDate
-        email     = authViewModel.email
+        email     = authViewModel.email.ifBlank { authRepository.currentUser?.email ?: "" }
     }
 
     fun finishOnBoarding(onFinished: () -> Unit) {
@@ -43,17 +43,18 @@ class OnBoardingViewModel @Inject constructor(
         viewModelScope.launch {
 
             val activeEmail = email.ifBlank { authRepository.currentUser?.email ?: "" }
+            val fullName = "$name $lastName".trim()
             val goalIds = LangerGoal.toIds(selectedGoal)
             val profile = UserFirebaseModel(
                 email     = activeEmail,
-                name      = name,
+                name      = fullName,
                 eta       = birthDate,
                 skinType  = selectedSkinType,
                 goalId    = goalIds
             )
             firebaseRepository.saveUserProfile(uid, profile)
             userPreferencesManager.saveUserData(
-                name     = name,
+                name     = fullName,
                 email    = activeEmail,
                 eta      = birthDate,
                 goals    = goalIds,

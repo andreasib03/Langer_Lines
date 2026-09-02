@@ -26,6 +26,8 @@ import com.example.linee_langer.domain.exceptions.AppException
 import com.example.linee_langer.domain.models.UserFirebaseModel
 import com.example.linee_langer.domain.usecases.UserUseCase
 import com.example.linee_langer.ui.shared.utils.exportDataAsPdf
+import com.example.linee_langer.ui.shared.utils.generateDataHtml
+import com.example.linee_langer.worker.SyncScheduler
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.GoogleAuthProvider
@@ -53,6 +55,7 @@ class ProfileViewModel @Inject constructor(
     private val userPreferencesManager: UserPreferencesManager,
     private val userUseCase: UserUseCase,
     private val notificationRepository: NotificationRepository,
+    private val syncScheduler: SyncScheduler,
     @param:ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
@@ -95,6 +98,10 @@ class ProfileViewModel @Inject constructor(
         if (_userProfile.value == null) {
             loadUserProfile()
         }
+    }
+
+    fun scheduleFullSync() {
+        syncScheduler.scheduleFullSync(forceIfPending = true)
     }
 
     fun loadUserProfile() {
@@ -202,10 +209,15 @@ class ProfileViewModel @Inject constructor(
     fun generateReport(context: Context, userData: UserFirebaseModel, analyses: List<AnalysisWithLines>, skinType: String) {
         viewModelScope.launch(Dispatchers.Default) {
             isExporting = true
-            // Chiamiamo la tua utility modificata
             try {
+                // Generazione HTML su thread di background (IO)
+                val htmlContent = withContext(Dispatchers.IO) {
+                    generateDataHtml(context, userData, analyses, skinType)
+                }
+
+                // Apertura PDF viewer su thread Main
                 withContext(Dispatchers.Main) {
-                    exportDataAsPdf(context, userData, analyses, skinType)
+                    exportDataAsPdf(context, htmlContent)
                 }
             } finally {
                 isExporting = false
@@ -262,6 +274,65 @@ class ProfileViewModel @Inject constructor(
                 logCaughtException(TAG, "Aggiornamento email fallito", e)
                 _isLoading.value = false
                 onResult(false)
+            }
+        }
+    }
+
+    /**
+     * Aggiornamento combinato di email e/o password con riautenticazione obbligatoria.
+     */
+    fun updateCredentials(
+        currentPassword: String,
+        newEmail: String?,
+        newPassword: String?,
+        onResult: (Result<Unit>) -> Unit
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                // 1. Riautenticazione
+                val reauthResult = authRepository.reauthenticateWithPassword(currentPassword)
+                if (reauthResult.isFailure) {
+                    _isLoading.value = false
+                    onResult(reauthResult)
+                    return@launch
+                }
+
+                // 2. Aggiornamento Password (se richiesto)
+                if (!newPassword.isNullOrBlank()) {
+                    val passResult = authRepository.updatePassword(newPassword)
+                    if (passResult.isFailure) {
+                        _isLoading.value = false
+                        onResult(passResult)
+                        return@launch
+                    }
+                }
+
+                // 3. Aggiornamento Email (se richiesto)
+                if (!newEmail.isNullOrBlank()) {
+                    val user = authRepository.currentUser
+                    if (user != null && user.email != newEmail) {
+                        try {
+                            user.verifyBeforeUpdateEmail(newEmail).await()
+                        } catch (e: com.google.firebase.auth.FirebaseAuthUserCollisionException) {
+                            _isLoading.value = false
+                            onResult(Result.failure(AppException.Authentication.EmailAlreadyExists("unknown")))
+                            return@launch
+                        } catch (e: Exception) {
+                            _isLoading.value = false
+                            onResult(Result.failure(e))
+                            return@launch
+                        }
+                    }
+                }
+
+                _isLoading.value = false
+                onResult(Result.success(Unit))
+
+            } catch (e: Exception) {
+                logCaughtException(TAG, "Aggiornamento credenziali fallito", e)
+                _isLoading.value = false
+                onResult(Result.failure(e))
             }
         }
     }

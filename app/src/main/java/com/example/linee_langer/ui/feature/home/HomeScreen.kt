@@ -282,7 +282,7 @@ private fun AdviceDetailDialog(
         icon = {
             Icon(
                 painter = painterResource(advice.icon),
-                contentDescription = null,
+                contentDescription = stringResource(advice.title),
                 tint = colorScheme.primary,
                 modifier = Modifier.size(Dimens.XXLarge)
             )
@@ -477,7 +477,7 @@ private fun RoutineMiniCard(
         Column(modifier = Modifier.padding(Dimens.Standard)) {
             Icon(
                 painter = painterResource(icon),
-                contentDescription = "",
+                contentDescription = stringResource(id = title),
                 modifier = Modifier.size(Dimens.XLarge),
                 tint = colorScheme.onSurfaceVariant
             )
@@ -513,7 +513,7 @@ private fun GridActionCard(
         ) {
             Icon(
                 painter = painterResource(icon),
-                contentDescription = "",
+                contentDescription = title,
                 modifier = Modifier.size(Dimens.RadiusHuge)
             )
             Column {

@@ -26,13 +26,9 @@ import com.example.linee_langer.ui.feature.camera.model.bodyPartLabel
 private const val TAG = "HelperProfile"
 fun exportDataAsPdf(
     context: Context,
-    userData: UserFirebaseModel,
-    analyses: List<AnalysisWithLines>,
-    formattedSkinType: String
+    htmlContent: String
 ) {
     val webView = WebView(context)
-    val htmlContent = generateDataHtml(context, userData, analyses, formattedSkinType)
-
     webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
 
     webView.webViewClient = object : WebViewClient() {
@@ -53,7 +49,7 @@ fun exportDataAsPdf(
     }
 }
 
-private fun generateDataHtml(
+fun generateDataHtml(
     context: Context,
     userData: UserFirebaseModel,
     analyses: List<AnalysisWithLines>,
@@ -178,22 +174,33 @@ private fun getResizedImageBase64(
 ): String? {
 
     return try {
-        val uri = path.toUri()
         val options = BitmapFactory.Options()
+
+        fun openStream(): java.io.InputStream? {
+            return try {
+                val uri = path.toUri()
+                if (uri.scheme == "content") {
+                    context.contentResolver.openInputStream(uri)
+                } else {
+                    java.io.File(path).inputStream()
+                }
+            } catch (e: Exception) {
+                null
+            }
+        }
 
         // 1. Leggiamo solo le dimensioni senza caricare i pixel in RAM
         options.inJustDecodeBounds = true
-        context.contentResolver.openInputStream(uri)?.use {
+        openStream()?.use {
             BitmapFactory.decodeStream(it, null, options)
         }
 
-        // 2. Calcoliamo il fattore di campionamento (es. carica 1 pixel ogni 4 o 8)
-        // Puntiamo a una larghezza di circa 400px per il PDF
+        // 2. Calcoliamo il fattore di campionamento
         options.inSampleSize = calculateInSampleSize(options)
         options.inJustDecodeBounds = false
 
         // 3. Carichiamo la bitmap già rimpicciolita
-        val resizedBitmap = context.contentResolver.openInputStream(uri)?.use {
+        val resizedBitmap = openStream()?.use {
             BitmapFactory.decodeStream(it, null, options)
         } ?: return null
 

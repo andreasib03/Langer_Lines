@@ -5,9 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.linee_langer.data.local.UserPreferencesManager.PreferencesKeys.AUTOCLEAN
 import com.example.linee_langer.data.local.UserPreferencesManager.PreferencesKeys.DARK_MODE
 import com.example.linee_langer.data.local.UserPreferencesManager.PreferencesKeys.ETA
 import com.example.linee_langer.data.local.UserPreferencesManager.PreferencesKeys.NOTIFICATIONS_ENABLED
@@ -39,21 +39,21 @@ class UserPreferencesManager(private val dataStore: DataStore<Preferences>) {
     }
 
     suspend fun getUserName(): String =
-        dataStore.data.map { it[PreferencesKeys.USER_NAME] ?: "" }.first()
+        dataStore.data.map { it[USER_NAME] ?: "" }.first()
 
     suspend fun getUserEmail(): String =
-        dataStore.data.map { it[PreferencesKeys.USER_EMAIL] ?: "" }.first()
+        dataStore.data.map { it[USER_EMAIL] ?: "" }.first()
 
     suspend fun getSkinType(): String =
-        dataStore.data.map { it[PreferencesKeys.SKIN_TYPE] ?: "" }.first()
+        dataStore.data.map { it[SKIN_TYPE] ?: "" }.first()
 
     suspend fun getEta(): String =
-        dataStore.data.map { it[PreferencesKeys.ETA] ?: "" }.first()
+        dataStore.data.map { it[ETA] ?: "" }.first()
 
 
     // Flussi di dati puliti e coerenti
     val isAutoCleanEnabledFlow: Flow<Boolean> = dataStore.data
-        .map { it[PreferencesKeys.AUTOCLEAN] ?: true }
+        .map { it[AUTOCLEAN] ?: true }
 
     val profileImageUriFlow: Flow<String?> = dataStore.data
         .map { it[PROFILE_IMAGE_KEY] }
@@ -67,12 +67,6 @@ class UserPreferencesManager(private val dataStore: DataStore<Preferences>) {
     val isNotificationEnabled: Flow<Boolean> = dataStore.data
         .map { it[NOTIFICATIONS_ENABLED] ?: true }
 
-    val userGoalsFlow: Flow<List<String>> = dataStore.data
-        .map { prefs ->
-            val raw = prefs[PreferencesKeys.USER_GOALS] ?: ""
-            if (raw.isBlank()) emptyList() else raw.split(",")
-        }
-
     suspend fun setOnboardingCompleted(completed: Boolean) {
         dataStore.edit { preferences ->
             preferences[ONBOARDING_COMPLETE] = completed
@@ -82,7 +76,7 @@ class UserPreferencesManager(private val dataStore: DataStore<Preferences>) {
 
     suspend fun saveAutoCleanPreference(enabled: Boolean){
         dataStore.edit { preferences ->
-            preferences[PreferencesKeys.AUTOCLEAN] = enabled
+            preferences[AUTOCLEAN] = enabled
         }
     }
 
@@ -110,22 +104,16 @@ class UserPreferencesManager(private val dataStore: DataStore<Preferences>) {
 
     }
 
-    suspend fun updateEmail(newEmail: String){
-        dataStore.edit {
-            it[USER_EMAIL] = newEmail
-        }
-    }
-
     suspend fun clearUserSession() {
         dataStore.edit { prefs ->
             // Rimuove solo i dati legati all'utente
-            prefs.remove(PreferencesKeys.ONBOARDING_COMPLETE)
-            prefs.remove(PreferencesKeys.USER_NAME)
-            prefs.remove(PreferencesKeys.ETA)
-            prefs.remove(PreferencesKeys.USER_EMAIL)
-            prefs.remove(PreferencesKeys.USER_GOALS)
-            prefs.remove(PreferencesKeys.SKIN_TYPE)
-            prefs.remove(PreferencesKeys.PROFILE_IMAGE_KEY)
+            prefs.remove(ONBOARDING_COMPLETE)
+            prefs.remove(USER_NAME)
+            prefs.remove(ETA)
+            prefs.remove(USER_EMAIL)
+            prefs.remove(USER_GOALS)
+            prefs.remove(SKIN_TYPE)
+            prefs.remove(PROFILE_IMAGE_KEY)
             // NON tocca DARK_MODE, AUTOCLEAN, NOTIFICATIONS_ENABLED
         }
     }
@@ -139,8 +127,6 @@ class UserPreferencesManager(private val dataStore: DataStore<Preferences>) {
     suspend fun setNotificationsEnabled(enabled: Boolean){
         dataStore.edit { it[NOTIFICATIONS_ENABLED] = enabled }
     }
-
-    // DEBUG OPTION
 
 
 }

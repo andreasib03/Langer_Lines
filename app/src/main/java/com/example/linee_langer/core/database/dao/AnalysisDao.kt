@@ -38,6 +38,10 @@ interface AnalysisDao {
     @Query("SELECT * FROM skin_analyses WHERE id = :id AND userId = :userId")
     fun getAnalysisWithLinesById(id: Long, userId: String): Flow<AnalysisWithLines?>
 
+    @Transaction
+    @Query("SELECT * FROM skin_analyses WHERE id = :id AND userId = :userId")
+    suspend fun getAnalysisWithLinesByIdSuspend(id: Long, userId: String): AnalysisWithLines?
+
     @Delete
     suspend fun deleteAnalysisEntry(analysisId: SkinAnalysisEntity)
 

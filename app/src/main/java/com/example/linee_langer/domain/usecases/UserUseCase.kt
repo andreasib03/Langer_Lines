@@ -6,6 +6,8 @@ import com.example.linee_langer.data.local.NotificationRepository
 import com.example.linee_langer.data.remote.AuthRepository
 import com.example.linee_langer.data.local.UserPreferencesManager
 import com.example.linee_langer.data.remote.FirebaseRepository
+import com.example.linee_langer.worker.SyncScheduler
+import java.util.UUID
 import javax.inject.Inject
 
 private const val TAG = "UserUseCase"
@@ -15,8 +17,13 @@ class UserUseCase @Inject constructor(
     private val repositoryAnalysis: AnalysisRepository,
     private val firebaseRepository: FirebaseRepository,
     private val userPreferencesManager: UserPreferencesManager,
-    private val notificationRepository: NotificationRepository
+    private val notificationRepository: NotificationRepository,
+    private val syncScheduler: SyncScheduler
 ) {
+
+    fun scheduleSync(force: Boolean = false): UUID? {
+        return syncScheduler.scheduleFullSync(force)
+    }
 
     suspend fun getUnsyncedAnalysesCount(): Int {
         val uid = authRepository.currentUser?.uid ?: return 0
