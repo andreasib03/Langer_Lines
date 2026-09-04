@@ -133,75 +133,7 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfileImageBase64(bitmap: Bitmap, onResult: (Boolean) -> Unit = {}) {
-        val uid = authRepository.currentUser?.uid ?: run {
-            onResult(false)
-            return
-        }
 
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                // Sfrutta il metodo pulito che hai dentro FirebaseRepository
-                val success = firebaseRepository.saveProfileImageBase64(uid, bitmap)
-
-                if (success) {
-                    _profileBitmap.value = bitmap
-                    _userProfile.value = _userProfile.value?.copy(imageBase64 = ImageUtils.bitmapToBase64(bitmap))
-                }
-
-                _isLoading.value = false
-                onResult(success)
-            } catch (e: Exception) {
-                logCaughtException(TAG, "Salvataggio immagine fallito", e)
-                _isLoading.value = false
-                onResult(false)
-            }
-        }
-    }
-
-    /**
-     * Sovraccarico utile se la UI fornisce una Uri (es. da PhotoPicker/Gallery):
-     * carica la Bitmap dall'Uri e la invia a Firestore.
-     */
-    fun updateProfileImageFromUri(uri: Uri, onResult: (Boolean) -> Unit = {}) {
-        viewModelScope.launch {
-            val bitmap = withContext(Dispatchers.IO) {
-                ImageUtils.uriToBitmap(appContext, uri)
-            }
-            if (bitmap != null) {
-                updateProfileImageBase64(bitmap, onResult)
-            } else {
-                onResult(false)
-            }
-        }
-    }
-
-    fun clearAllData(onComplete: () -> Unit) {
-        _isLoading.value = true
-        val uid = authRepository.currentUser?.uid
-
-        viewModelScope.launch {
-            try {
-                if (uid != null) {
-                    firebaseRepository.deleteDocument(uid)
-                    repositoryAnalysis.deleteAllAnalysisForUser(uid)
-                }
-                notificationRepository.deleteAllNotifications()
-                userPreferencesManager.clearUserSession()
-                _userProfile.value = null
-                _profileBitmap.value = null
-
-                authRepository.signOut()
-                _isLoading.value = false
-                onComplete()
-            } catch (e: Exception) {
-                logCaughtException(TAG, "Cancellazione completa dati utente fallita (uid=$uid)", e)
-                _isLoading.value = false
-                _deleteDataError.value = true
-            }
-        }
-    }
 
     var isExporting by mutableStateOf(false)
         private set
@@ -247,33 +179,6 @@ class ProfileViewModel @Inject constructor(
                 userPreferencesManager.saveProfileImageUri(uri.toString())
             } catch (e: Exception) {
                 logCaughtException(TAG, "Salvataggio URI immagine profilo fallito (uri=$uri)", e)
-            }
-        }
-    }
-
-    fun updateEmail(newEmail: String, password: String, onResult: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val user = authRepository.currentUser ?: run {
-                    _isLoading.value = false
-                    onResult(false)
-                    return@launch
-                }
-                authRepository.reauthenticateWithPassword(password)
-                    .onSuccess {
-                        user.verifyBeforeUpdateEmail(newEmail).await()
-                        _isLoading.value = false
-                        onResult(true)
-                    }
-                    .onFailure {
-                        _isLoading.value = false
-                        onResult(false)
-                    }
-            } catch (e: Exception) {
-                logCaughtException(TAG, "Aggiornamento email fallito", e)
-                _isLoading.value = false
-                onResult(false)
             }
         }
     }

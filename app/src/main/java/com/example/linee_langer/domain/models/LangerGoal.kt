@@ -53,9 +53,6 @@ enum class LangerGoal(
     );
 
     companion object {
-        // Converte una lista di ID stringa (da Firestore/DataStore) in Set<LangerGoal>
-        fun fromIds(ids: List<String>): Set<LangerGoal> =
-            ids.mapNotNull { id -> entries.find { it.id == id } }.toSet()
 
         // Converte Set<LangerGoal> in lista di ID stringa per la persistenza
         fun toIds(goals: Set<LangerGoal>): List<String> =

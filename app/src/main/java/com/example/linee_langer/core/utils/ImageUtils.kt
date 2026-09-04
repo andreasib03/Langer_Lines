@@ -69,35 +69,4 @@ object ImageUtils {
         }
     }
 
-    /**
-     * Carica un'immagine da URI, la ridimensiona se necessario per restare nei limiti di Firestore (1MB)
-     * e la converte in Base64.
-     */
-    fun getSyncReadyBase64(context: Context, uri: Uri, maxWidth: Int = 800): String? {
-        return try {
-            val options = BitmapFactory.Options()
-            options.inJustDecodeBounds = true
-            context.contentResolver.openInputStream(uri)?.use {
-                BitmapFactory.decodeStream(it, null, options)
-            }
-
-            var inSampleSize = 1
-            if (options.outWidth > maxWidth) {
-                inSampleSize = options.outWidth / maxWidth
-            }
-            options.inJustDecodeBounds = false
-            options.inSampleSize = inSampleSize
-
-            val bitmap = context.contentResolver.openInputStream(uri)?.use {
-                BitmapFactory.decodeStream(it, null, options)
-            } ?: return null
-
-            val base64 = bitmapToBase64(bitmap, quality = 60)
-            bitmap.recycle()
-            base64
-        } catch (e: Exception) {
-            null
-        }
-    }
-
 }

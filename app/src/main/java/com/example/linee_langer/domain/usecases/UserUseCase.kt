@@ -24,11 +24,6 @@ class UserUseCase @Inject constructor(
     fun scheduleSync(force: Boolean = false): UUID? {
         return syncScheduler.scheduleFullSync(force)
     }
-
-    suspend fun getUnsyncedAnalysesCount(): Int {
-        val uid = authRepository.currentUser?.uid ?: return 0
-        return repositoryAnalysis.getUnsyncedCount(uid)
-    }
     suspend fun performFullLogout() {
         val uid = authRepository.currentUser?.uid
         authRepository.signOut()

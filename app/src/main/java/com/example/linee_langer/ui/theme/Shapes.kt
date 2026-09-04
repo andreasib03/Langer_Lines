@@ -20,4 +20,3 @@ val AppShapes = Shapes(
 
 // Shortcut per forme usate frequentemente nell'app
 val CircleShape = RoundedCornerShape(50)
-val PillShape   = RoundedCornerShape(50)

@@ -137,7 +137,7 @@ fun AppNavigation(startDestination: String) {
                     val authViewModel: AuthViewModel = hiltViewModel()
                     LoginScreen(
                         authViewModel = authViewModel,
-                        onAuthSuccess = { isExistingUser, isGoogle ->
+                        onAuthSuccess = { isExistingUser, _ ->
                             if (isExistingUser) {
                                 navController.navigate(Screen.Home.route) {
                                     popUpTo(Screen.Welcome.route) { inclusive = true }

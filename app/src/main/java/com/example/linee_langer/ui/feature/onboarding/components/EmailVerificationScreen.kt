@@ -25,6 +25,7 @@ import com.example.linee_langer.ui.feature.auth.AuthViewModel
 import com.example.linee_langer.ui.theme.CircleShape
 import com.example.linee_langer.ui.theme.Dimens
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 
 // Intervallo polling in millisecondi — controlla ogni 4 secondi
@@ -51,7 +52,7 @@ fun EmailVerificationScreen(
 
     LaunchedEffect(Unit) {
         while(true){
-            delay(POLLING_INTERVAL_MS)
+            delay(POLLING_INTERVAL_MS.milliseconds)
             authViewModel.checkAndProceed(
                 onVerified = onVerified,
                 onNotVerified = { /*non fa niente*/}
@@ -61,7 +62,7 @@ fun EmailVerificationScreen(
 
     LaunchedEffect(resendCooldown) {
         if(resendCooldown > 0){
-            delay(1_000L)
+            delay(1_000L.milliseconds)
             resendCooldown--
         }
     }

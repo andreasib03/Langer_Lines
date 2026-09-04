@@ -1,7 +1,6 @@
 package com.example.linee_langer
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,17 +13,12 @@ import androidx.compose.ui.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.lifecycleScope
-import com.example.linee_langer.data.local.UserPreferencesManager
-import com.example.linee_langer.data.local.dataStore
 import com.example.linee_langer.data.remote.AuthRepository
 import com.example.linee_langer.ui.theme.LangerTheme
 import com.example.linee_langer.ui.navigation.AppNavigation
 import com.example.linee_langer.ui.navigation.Screen
 import com.example.linee_langer.ui.feature.settings.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 //entry point

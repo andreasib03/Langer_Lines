@@ -34,7 +34,6 @@ class LangerDetector : ILangerDetector {
         init {
             try {
                 // "opencv_java4" è il nome standard della libreria nelle versioni 4.x
-                // Se usi la 3.x, prova "opencv_java3"
                 System.loadLibrary("opencv_java4")
                 libraryLoaded = true
             } catch (e: UnsatisfiedLinkError) {

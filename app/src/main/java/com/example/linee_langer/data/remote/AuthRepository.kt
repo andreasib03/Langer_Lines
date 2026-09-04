@@ -21,7 +21,7 @@ class AuthRepository @Inject constructor(
     private val firebaseRepository: FirebaseRepository
 ) {
 
-    // Single Source of Truth per l'utente
+    // L'unica fonte di "verità" per l'utente
     val currentUserFlow: Flow<FirebaseUser?> = callbackFlow {
         val listener = FirebaseAuth.AuthStateListener { auth ->
             trySend(auth.currentUser)
@@ -158,13 +158,6 @@ class AuthRepository @Inject constructor(
         } catch (e: Exception) {
             logCaughtException(TAG, "Riautenticazione con Google fallita", e)
             Result.failure(e)
-        }
-    }
-
-    fun isGoogleUser(): Boolean {
-        val user = auth.currentUser ?: return false
-        return user.providerData.any {
-            it.providerId == GoogleAuthProvider.PROVIDER_ID || it.providerId == "google.com"
         }
     }
 

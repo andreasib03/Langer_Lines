@@ -4,6 +4,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.work.impl.Migration_3_4
 
+// Since it wasn't used in production, we don't need the migration. However, we'll keep it for future reference.
 object MigrationDatabases {
 
     val MIGRATION_1_2 = object : Migration(1,2){

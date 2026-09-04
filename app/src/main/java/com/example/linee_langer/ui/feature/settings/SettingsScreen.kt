@@ -36,7 +36,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,7 +57,6 @@ import com.example.linee_langer.ui.feature.settings.components.SettingsItem
 import com.example.linee_langer.ui.feature.settings.components.SettingsSection
 import com.example.linee_langer.ui.theme.Dimens
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
@@ -159,9 +157,6 @@ fun SettingsScreen(
         }
     }
 
-
-
-    val scope = rememberCoroutineScope()
 
     val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)

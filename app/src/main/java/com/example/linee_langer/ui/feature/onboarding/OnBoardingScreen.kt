@@ -66,13 +66,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.lifecycle.viewModelScope
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.linee_langer.R
-import com.example.linee_langer.data.local.UserPreferencesManager
 import com.example.linee_langer.domain.models.LangerGoal
 import com.example.linee_langer.ui.feature.onboarding.components.OnboardingSkinTypeScreen
 import com.example.linee_langer.ui.theme.AppTypography

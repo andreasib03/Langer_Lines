@@ -6,35 +6,9 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import com.example.linee_langer.domain.models.LangerLine
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.OutputStream
 
 private const val TAG = "HelperImages"
-
-suspend fun saveAnalysisData(
-    context: Context,
-    bitmap: Bitmap,
-    lines: List<LangerLine>,
-    onLocalSave: suspend (Long, String) -> Unit,
-    onSync: () -> Unit
-) = withContext(Dispatchers.IO){
-
-    val timestamp = System.currentTimeMillis()
-    val savedUri = saveBitmapToGallery(context, bitmap, timestamp) ?: throw Exception("Impossibile scrivere il file nella galleria")
-
-    try {
-        onLocalSave(timestamp, savedUri.toString())
-        onSync()
-    } catch (e: Exception) {
-        logCaughtException(TAG, "Salvataggio dati analisi su DB fallito dopo scrittura immagine (uri=$savedUri)", e)
-        // Se il salvataggio su DB fallisce, sarebbe opportuno gestire
-        // la pulizia dell'immagine appena salvata (opzionale ma consigliato)
-        throw Exception("Errore database: ${e.message}", e)
-    }
-
-}
 
 /**
  * Salva fisicamente la bitmap all'interno della memoria pubblica del dispositivo (Pictures/LangerAnalysis).

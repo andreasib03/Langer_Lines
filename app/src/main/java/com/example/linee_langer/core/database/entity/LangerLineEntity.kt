@@ -5,7 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-// data class for every line
+
 @Entity(
     tableName = "langer_lines",
     foreignKeys = [

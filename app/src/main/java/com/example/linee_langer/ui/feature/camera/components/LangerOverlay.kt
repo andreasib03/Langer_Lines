@@ -63,7 +63,7 @@ fun LangerOverlay(
             drawLine(
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        LangerLineColor.copy(alpha = line.intensity), // mettere langerLineColor
+                        LangerLineColor.copy(alpha = line.intensity),
                         CameraOverlayText
                     ),
                     start = start,

@@ -70,8 +70,6 @@ fun generateDataHtml(
     val strNoImage     = context.getString(R.string.pdf_no_image)
     val appName        = context.getString(R.string.app_name)
 
-    // Nuove stringhe per i dettagli tecnici nel PDF
-    val strBodyPart     = context.getString(R.string.analysis_info_body_part)
     val strAvgIntensity = context.getString(R.string.analysis_info_avg_intensity)
     val strTension      = context.getString(R.string.analysis_info_tension_level)
     val strSynced       = context.getString(R.string.detail_synced)

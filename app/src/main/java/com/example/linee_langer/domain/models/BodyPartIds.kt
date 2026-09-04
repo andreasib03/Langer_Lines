@@ -11,16 +11,4 @@ object BodyPartIds {
     const val CHEEK     = "cheek"
     const val DEFAULT   = "face"
 
-    val ALL = setOf(
-        FACE,
-        ARMS,
-        LEGS,
-        HANDS,
-        CHEST,
-        ABDOMEN,
-        FOREHEAD,
-        CHEEK
-    )
-
-    fun isValid(id: String): Boolean = ALL.contains(id.lowercase())
 }
